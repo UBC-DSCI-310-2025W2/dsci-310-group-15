@@ -6,4 +6,4 @@ If you are interested in submitting a bug or issue fix, please list the operatin
 
  If you are interested in requesting an additional feature/script/any outputs, feel free to open up an [issue](https://github.com/UBC-DSCI-310-2025W2/dsci-310-group-15/issues).
 
- We try to get back to pull requests ASAP (ideally within 1-2 weeks), but please be patient if it looks like we haven't done anything yet.
+ We try to get back to pull requests ASAP (ideally within 1-2 weeks), but please be patient if it looks like we haven't done anything yet. If you haven't seen any updates after 2 weeks, you can submit a new issue/pull request.
