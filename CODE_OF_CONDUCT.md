@@ -13,6 +13,8 @@ Respectful, professional language is an expectation to all contributors. We want
 * Providing *constructive* feedback. Consider using a SMART format: specific, measurable, actionable, relevant, time-bound (this can be optional within reason).
 * Using a respectful and professional tone.
 * Having productive and thoughful discussions with fellow contributors.
+* Respecting others' time by making sure you are on time, or trying to inform the rest that you will be late as soon as possible.
+* Communicate. Don't leave other people in the dark about your actions.
 
 ### Unacceptable Behaviour
 
@@ -38,3 +40,13 @@ If we see any behaviour deemed as unacceptable, or if it's reported to us (use m
 2. **Strike Two:** editing the content plus a reprimand in the replies. Any future contributions made will be monitored. Good behaviour could mean being moved down a strike level.
 
 3. **Strike Three:** deleting *all* issues/comments made and a ban from the repository. This will also lead to a report within GitHub's report system.
+
+---
+
+For groupmates, we will use a similar strike system.
+
+1. **Strike One:** verbal warning. Just a quick question or check in about how you are doing and whether you need more time.
+
+2. **Strike Two:** logging. If you fail to show up, fail to communicate why you are not contributing as much, etc., you will be logged and inspected for how many times you've missed something.
+
+3. **Strike Three:** continuing to ignore will lead to a discussion with the instructor.
