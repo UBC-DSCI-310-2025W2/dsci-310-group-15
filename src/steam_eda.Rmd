@@ -1,0 +1,644 @@
+---
+title: "What makes free games different?"
+author: "Group 15"
+date: "2026-03-01`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: flatly
+    highlight: tango
+    df_print: paged
+    code_folding: show
+  pdf_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo      = TRUE,
+  warning   = FALSE,
+  message   = FALSE,
+  fig.width = 9,
+  fig.height = 5,
+  fig.align = "center"
+)
+```
+
+------------------------------------------------------------------------
+
+# Summary
+
+This project aims to predict whether a game is free or not based on its attributes. Using a dataset of \~5,000 Steam games collected in August 2025, we will use game's attributes to train classification models to predict whether a game will be free or not based on the following attributes: genre, supported platforms features, developer, release year, and consumer sentiment.
+
+------------------------------------------------------------------------
+
+# 1. Introduction
+
+## 1.1 Background
+
+Steam is the world's largest PC game distribution platform with over 70,000 titles and millions of daily active users as of 2025. Developers can publish games through an open submission program letting indie and small creators show off their games to a wider audience.
+
+User reviews allow Steam's recommendation system to suggest users with potential titles they'd be interested in.
+
+Being able to predict whether a game will be free or not will help groups determine pricing structure target audience, and game longevity. The following groups would be particularly interested in:
+
+-   **Developers** making pre-launch decisions about pricing, feature scope, and genre positioning
+-   **Publishers** evaluating which projects to greenlight
+-   **Platform researchers** studying what drives quality signals in large content marketplaces
+
+## 1.2 Research Question
+
+Can we predict whether a Steam game will be free or not using observable game attributes available at or near launch?
+
+Specifically, we ask:
+
+1.  What specifically are players expecting when looking at paid versus free-to-play games? (price tier, genre, platform features)
+2.  Can machine learning classifiers accurately distinguish free and paid games?
+3.  What are the significant differences between free-to-play games and paid titles?
+
+## 1.3 Dataset Description
+
+The dataset is the **Steam 2025 5K Games Dataset**:
+
+> **Source:** [`steam_2025_5k-dataset-games_20250831.json.gz`](https://github.com/vintagedon/steam-dataset-2025/blob/main/data/01_raw/steam_2025_5k-dataset-games_20250831.json.gz)\
+> **Maintainer:** vintagedon (GitHub)\
+> **Snapshot date:** August 31, 2025\
+> **Format:** Gzip-compressed JSON\
+> **Size:** \~5,000 game records
+
+Key fields used in this analysis:
+
+| Field | Type | Description |
+|------------------------|------------------------|------------------------|
+| `steam_appid` | integer | Unique game identifier |
+| `name` | string | Game title |
+| `is_free` | boolean | Free-to-play status |
+| `price_overview` | nested dict | Current price in USD |
+| `genres` | list of dicts | Official Steam genres |
+| `categories` | list of dicts | Feature flags (multiplayer, achievements, etc.) |
+| `tags` | dict / list | Community-applied descriptive labels |
+| `total_positive` | integer | Number of positive reviews |
+| `total_negative` | integer | Number of negative reviews |
+| `platforms` | dict | Supported OS (Windows, Mac, Linux) |
+| `release_date` | nested dict | Release date string |
+| `required_age` | integer | Age rating |
+| `developer` | list of char | Developer studio/company |
+
+------------------------------------------------------------------------
+
+# 2. Setup
+
+```{r libraries}
+library(tidyverse)  
+library(jsonlite)   
+library(lubridate)       
+library(vip) 
+library(scales)     
+library(ggcorrplot)      
+library(patchwork)
+library(purrr)
+
+theme_set(theme_minimal(base_size = 12))
+
+cat("All libraries loaded.\n")
+```
+
+------------------------------------------------------------------------
+
+# 3. Data Loading & Inspection
+
+```{r load-data}
+DATA_URL <- "https://github.com/vintagedon/steam-dataset-2025/raw/refs/heads/main/data/01_raw/steam_2025_5k-dataset-games_20250831.json.gz"
+
+steam_data <- fromJSON(
+  gzcon(url(DATA_URL)), flatten = TRUE
+)
+```
+
+```{r}
+
+flat_data <- as_tibble(steam_data$games)
+flat_data <- flat_data %>%
+  select(
+    appid,
+    name_from_applist,
+    app_details.data.required_age,
+    app_details.data.is_free,
+    app_details.data.developers,
+    app_details.data.publishers,
+    app_details.data.dlc,
+    app_details.data.demos,
+    app_details.data.platforms.windows,
+    app_details.data.platforms.mac,
+    app_details.data.platforms.linux,
+    app_details.data.achievements.total,
+    app_details.data.achievements.highlighted,
+    app_details.data.recommendations.total,
+    app_details.data.metacritic.score,
+    app_details.data.categories
+  )
+
+flat_data <- flat_data %>%
+  rename(
+    game_id              = appid,
+    game_name            = name_from_applist,
+    required_age         = app_details.data.required_age,
+    is_free              = app_details.data.is_free,
+    developers           = app_details.data.developers,
+    publishers           = app_details.data.publishers,
+    dlc                  = app_details.data.dlc,
+    demos                = app_details.data.demos,
+    windows_support      = app_details.data.platforms.windows,
+    mac_support          = app_details.data.platforms.mac,
+    linux_support        = app_details.data.platforms.linux,
+    total_achievements   = app_details.data.achievements.total,
+    highlighted_achievements = app_details.data.achievements.highlighted,
+    total_recommendations     = app_details.data.recommendations.total,
+    metacritic_score     = app_details.data.metacritic.score,
+    categories = app_details.data.categories
+  )
+
+df_flat <- df_flat %>%
+  mutate(
+    has_dlc  = map_lgl(dlc,  ~ length(.x) > 0),
+    has_demo = map_lgl(demos, ~ length(.x) > 0),
+    required_age = as.numeric(required_age)
+  )
+
+```
+
+```{r inspect-nulls}
+atomic_cols <- names(flat_data)[sapply(flat_data, function(x)
+  is.atomic(x) && !is.list(x))]
+
+null_rates <- flat_data[, atomic_cols] |>
+  summarise(across(everything(), ~ mean(is.na(.) | . == ""))) |>
+  pivot_longer(everything(), names_to = "column", values_to = "pct_missing") |>
+  arrange(desc(pct_missing)) |>
+  filter(pct_missing > 0)
+
+null_rates |>
+  slice_head(n = 20) |>
+  mutate(pct_missing = percent(pct_missing, accuracy = 0.1)) |>
+  knitr::kable(caption = "Top 20 columns by missing-value rate (atomic columns)")
+```
+
+# 4. Data Cleaning and Feature Engineering
+
+```{r}
+# Extract developer/publisher names
+flat_data <- flat_data %>%
+  mutate(
+    developer_name = map_chr(developers, ~ if (length(.x) > 0) .x[[1]] else NA_character_),
+    publisher_name = map_chr(publishers, ~ if (length(.x) > 0) .x[[1]] else NA_character_)
+  )
+
+# Factor/logical conversions
+flat_data <- flat_data %>%
+  mutate(
+    is_free         = factor(is_free, levels = c(FALSE, TRUE), labels = c("Paid", "Free")),
+    windows_support = as.logical(windows_support),
+    mac_support     = as.logical(mac_support),
+    linux_support   = as.logical(linux_support)
+  )
+
+# Derive numeric features 
+flat_data <- flat_data %>%
+  mutate(
+    platform_count       = as.integer(windows_support) +
+                           as.integer(mac_support) +
+                           as.integer(linux_support),
+    log_recommendations  = log1p(as.numeric(total_recommendations)),
+    has_metacritic       = !is.na(metacritic_score)
+  )
+
+# Parse categories column
+flat_data <- flat_data %>%
+  mutate(
+    category_list = map(categories, function(cat) {
+      if (is.null(cat) || !is.data.frame(cat) || nrow(cat) == 0) return(character(0))
+      if ("description" %in% names(cat)) return(cat$description)
+      return(character(0))
+    }),
+    n_categories = map_int(category_list, length)
+  )
+
+# One-hot encode the most common categories 
+all_cats <- flat_data %>%
+  select(game_id, category_list) %>%
+  unnest(category_list) %>%
+  rename(category = category_list)
+
+top_categories <- all_cats %>%
+  count(category, sort = TRUE) %>%
+  slice_head(n = 20) %>%
+  pull(category)
+
+cat("Top 20 Steam categories:\n"); print(top_categories)
+
+# One-hot one column per top category
+for (cat_name in top_categories) {
+  col_name <- paste0("cat_", janitor::make_clean_names(cat_name))
+  flat_data[[col_name]] <- map_lgl(
+    flat_data$category_list,
+    ~ cat_name %in% .x
+  )
+}
+
+# Create final dataframe
+cat_cols <- grep("^cat_", names(flat_data), value = TRUE)
+
+df_model <- flat_data %>%
+  select(
+    game_id, game_name, is_free,
+    required_age, windows_support, mac_support, linux_support, platform_count,
+    total_achievements, total_recommendations, log_recommendations,
+    metacritic_score, has_metacritic,
+    dlc, demos,
+    n_categories,
+    developer_name, publisher_name,
+    all_of(cat_cols)
+  )
+
+cat("Final modelling dataset:", nrow(df_model), "rows ×", ncol(df_model), "cols\n")
+glimpse(df_model)
+```
+
+# 5. Explanatory Data Analysis
+
+## 5.1 Target Variable Analysis
+
+```{r target-dist, fig.height=4}
+# Analysis of Target Variable
+df_model <- df_model %>%
+  mutate(
+    required_age = as.numeric(required_age) 
+    )
+
+class_counts <- df_model %>%
+  count(is_free) %>%
+  mutate(
+    pct   = n / sum(n),
+    label = paste0(comma(n), "\n(", percent(pct, accuracy = 1), ")")
+  )
+
+ggplot(class_counts, aes(x = is_free, y = n, fill = is_free)) +
+  geom_col(width = 0.55, show.legend = FALSE) +
+  geom_text(aes(label = label), vjust = -0.3, size = 4.5, fontface = "bold") +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  scale_y_continuous(labels = comma, expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title    = "Class Balance",
+    x = NULL, y = "Number of Games"
+  )
+```
+
+> The dataset is imbalanced. Free-to-play titles are the minority class and will require resampling or class-weighted modelling.
+
+## 5.2 Numerical Variable Analysis
+
+```{r numeric-dist, fig.height=7}
+numeric_vars <- df_model %>%
+  select(total_achievements, total_recommendations, metacritic_score,
+         required_age, platform_count, n_categories) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
+  drop_na()
+
+ggplot(numeric_vars, aes(x = value, fill = variable)) +
+  geom_histogram(bins = 40, show.legend = FALSE, color = "white", linewidth = 0.2) +
+  facet_wrap(~ variable, scales = "free", ncol = 2) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Distribution of Key Numeric Features", x = NULL, y = "Count")
+```
+
+```{r log-recs-density, fig.height=4}
+ggplot(df_model %>% drop_na(log_recommendations),
+       aes(x = log_recommendations, fill = is_free)) +
+  geom_density(alpha = 0.55) +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  labs(
+    title    = "log(1 + Recommendations) by Free/Paid Status",
+    x = "log(1 + Total Recommendations)", y = "Density", fill = NULL
+  )
+```
+
+## 5.3 Platform Support
+
+```{r platform-analysis, fig.height=4.5}
+platform_summary <- df_model %>%
+  group_by(is_free) %>%
+  summarise(
+    Windows = mean(windows_support, na.rm = TRUE),
+    Mac     = mean(mac_support, na.rm = TRUE),
+    Linux   = mean(linux_support, na.rm = TRUE)
+  ) %>%
+  pivot_longer(-is_free, names_to = "platform", values_to = "pct_supported")
+
+ggplot(platform_summary, aes(x = platform, y = pct_supported, fill = is_free)) +
+  geom_col(position = "dodge", width = 0.6) +
+  geom_text(aes(label = percent(pct_supported, accuracy = 1)),
+            position = position_dodge(width = 0.6), vjust = -0.4, size = 3.8) +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  scale_y_continuous(labels = percent, limits = c(0, 1.1)) +
+  labs(
+    title    = "Platform Support Rate by Free/Paid Status",
+    x = "Platform", y = "% of Games Supported", fill = NULL
+  )
+```
+
+## 5.4 Achievements & DLC
+
+```{r achievements-violin, fig.height=4.5}
+df_model %>%
+  filter(!is.na(total_achievements)) %>%
+  mutate(achievements_log = log1p(total_achievements)) %>%
+  ggplot(aes(x = is_free, y = achievements_log, fill = is_free)) +
+  geom_violin(alpha = 0.6, trim = TRUE) +
+  geom_boxplot(width = 0.15, outlier.size = 0.8, fill = "white") +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  labs(
+    title    = "log(1 + Achievements) by Free/Paid Status",
+    x = NULL, y = "log(1 + Total Achievements)"
+  ) +
+  theme(legend.position = "none")
+```
+
+```{r dlc-demo-bars, fig.height=4}
+binary_features <- df_model %>%
+  group_by(is_free) %>%
+  summarise(`Has DLC` = mean(has_dlc), `Has Demo` = mean(has_demo)) %>%
+  pivot_longer(-is_free, names_to = "feature", values_to = "pct")
+
+ggplot(binary_features, aes(x = feature, y = pct, fill = is_free)) +
+  geom_col(position = "dodge", width = 0.55) +
+  geom_text(aes(label = percent(pct, accuracy = 0.1)),
+            position = position_dodge(width = 0.55), vjust = -0.4, size = 3.8) +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  scale_y_continuous(labels = percent, limits = c(0, 0.5)) +
+  labs(title = "DLC & Demo Prevalence by Free/Paid Status",
+       x = NULL, y = "% of Games", fill = NULL)
+```
+
+------------------------------------------------------------------------
+
+# 6. Categories Analysis
+
+Steam categories are feature flags applied by Valve (e.g., *Single-player*, *Multi-player*, *Steam Achievements*, *VR Support*). They capture gameplay structure and technical features which are distinct from community-applied tags.
+
+## 6.1 Categories Coverage
+
+```{r cat-coverage, fig.height=3.5}
+# How many games have at least one category?
+cat_coverage <- df_model %>%
+  mutate(has_categories = n_categories > 0) %>%
+  group_by(is_free) %>%
+  summarise(pct = mean(has_categories))
+
+ggplot(cat_coverage, aes(x = is_free, y = pct, fill = is_free)) +
+  geom_col(width = 0.5, show.legend = FALSE) +
+  geom_text(aes(label = percent(pct, accuracy = 0.1)),
+            vjust = -0.4, size = 4.5, fontface = "bold") +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  scale_y_continuous(labels = percent, limits = c(0, 1.1)) +
+  labs(title = "% of Games with At Least One Category Tag",
+       x = NULL, y = "% with Categories")
+```
+
+## 6.2 Number of Categories per Game
+
+```{r n-cats-boxplot, fig.height=4.5}
+ggplot(df_model, aes(x = is_free, y = n_categories, fill = is_free)) +
+  geom_violin(alpha = 0.6, trim = TRUE) +
+  geom_boxplot(width = 0.15, outlier.size = 0.8, fill = "white") +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  labs(
+    title    = "Number of Category Tags per Game",
+    subtitle = "Free games tend to have more feature categories listed",
+    x = NULL, y = "# of Category Tags"
+  ) +
+  theme(legend.position = "none")
+```
+
+## 6.3 Top 20 Categories: Overall Prevalence
+
+```{r top-cats-overall, fig.height=6}
+all_cats %>%
+  count(category, sort = TRUE) %>%
+  slice_head(n = 20) %>%
+  mutate(pct = n / nrow(df_model)) %>%
+  ggplot(aes(x = reorder(category, pct), y = pct)) +
+  geom_col(fill = "#6366F1", width = 0.7) +
+  geom_text(aes(label = percent(pct, accuracy = 1)),
+            hjust = -0.1, size = 3.4) +
+  coord_flip() +
+  scale_y_continuous(labels = percent, limits = c(0, 1.05)) +
+  labs(
+    title    = "Top 20 Steam Categories by Prevalence",
+    subtitle = "Single-player and Steam Achievements dominate",
+    x = NULL, y = "% of All Games"
+  )
+```
+
+## 6.4 Category Prevalence: Free vs Paid Side-by-Side
+
+```{r cat-by-free-paid, fig.height=7.5}
+# Compute prevalence of top 20 categories within each group
+cat_prev <- flat_data %>%
+  select(game_id, is_free, category_list) %>%
+  unnest(category_list) %>%
+  rename(category = category_list) %>%
+  filter(category %in% top_categories) %>%
+  count(is_free, category) %>%
+  left_join(
+    df_model %>% count(is_free, name = "group_total"),
+    by = "is_free"
+  ) %>%
+  mutate(pct = n / group_total)
+
+ggplot(cat_prev, aes(x = reorder(category, pct), y = pct, fill = is_free)) +
+  geom_col(position = "dodge", width = 0.7) +
+  geom_text(aes(label = percent(pct, accuracy = 1)),
+            position = position_dodge(width = 0.7),
+            hjust = -0.1, size = 2.8) +
+  coord_flip() +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  scale_y_continuous(labels = percent, limits = c(0, 1.1)) +
+  labs(
+    title    = "Category Prevalence: Free vs Paid Games (Top 20)",
+    x = NULL, y = "% within Group", fill = NULL
+  )
+```
+
+## 6.5 Differential Analysis: Which Categories Most Distinguish Free from Paid?
+
+```{r cat-differential, fig.height=6.5}
+cat_diff <- cat_prev %>%
+  select(is_free, category, pct) %>%
+  pivot_wider(names_from = is_free, values_from = pct, values_fill = 0) %>%
+  mutate(
+    diff        = Free - Paid,
+    direction   = if_else(diff > 0, "Free > Paid", "Paid > Free"),
+    abs_diff    = abs(diff)
+  ) %>%
+  arrange(desc(abs_diff))
+
+ggplot(cat_diff, aes(x = reorder(category, diff), y = diff, fill = direction)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = paste0(if_else(diff > 0, "+", ""), percent(diff, accuracy = 1))),
+            hjust = if_else(cat_diff$diff > 0, -0.1, 1.1), size = 3.3) +
+  coord_flip() +
+  scale_fill_manual(values = c("Free > Paid" = "#10B981", "Paid > Free" = "#3B82F6")) +
+  scale_y_continuous(labels = percent, limits = c(-0.85, 0.85)) +
+  labs(
+    title    = "Category Prevalence Difference: Free minus Paid",
+    subtitle = "Positive = more common in free games | Negative = more common in paid games",
+    x = NULL, y = "Difference in Prevalence (Free − Paid)", fill = NULL
+  )
+```
+
+> Key observations: - Free games strongly over-index on Multi-player, Online PvP, Steam Trading Cards, In-App Purchases, and Online Co-op which is consistent with a live-service monetization model. - Paid games over-index on Single-player, Steam Achievements, Full Controller Support, and Steam Cloud reflecting self-contained, story-driven experiences.
+
+## 6.6 Category Co-occurrence Heatmap
+
+How often do category pairs appear together within each pricing tier?
+
+```{r cat-cooccurrence, fig.height=7}
+# Focus on top 12 categories for readability
+top12 <- top_categories[1:12]
+
+# Build co-occurrence matrix for all games
+co_df <- flat_data %>%
+  select(game_id, category_list) %>%
+  mutate(category_list = map(category_list, ~ intersect(.x, top12))) %>%
+  filter(map_int(category_list, length) > 0)
+
+# For each pair, count how many games share both
+cat_matrix <- matrix(0, nrow = 12, ncol = 12,
+                     dimnames = list(top12, top12))
+
+for (cats in co_df$category_list) {
+  if (length(cats) >= 2) {
+    pairs <- combn(cats, 2)
+    for (i in seq_len(ncol(pairs))) {
+      a <- pairs[1, i]; b <- pairs[2, i]
+      cat_matrix[a, b] <- cat_matrix[a, b] + 1
+      cat_matrix[b, a] <- cat_matrix[b, a] + 1
+    }
+  }
+}
+
+diag(cat_matrix) <- NA
+
+# Normalize to proportion of total games
+co_pct <- cat_matrix / nrow(flat_data)
+
+# Plot
+co_pct %>%
+  as.data.frame() %>%
+  rownames_to_column("cat_a") %>%
+  pivot_longer(-cat_a, names_to = "cat_b", values_to = "pct") %>%
+  drop_na() %>%
+  ggplot(aes(x = cat_a, y = cat_b, fill = pct)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = percent(pct, accuracy = 1)), size = 2.7) +
+  scale_fill_gradient(low = "#EFF6FF", high = "#1D4ED8",
+                      labels = percent, name = "Co-occur %") +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
+  labs(
+    title    = "Category Co-occurrence Heatmap (Top 12 Categories)",
+    subtitle = "% of all games containing both categories",
+    x = NULL, y = NULL
+  )
+```
+
+## 6.7 Category Count vs Recommendations
+
+Does having more feature categories correlate with more user engagement?
+
+```{r cats-vs-recs, fig.height=4.5}
+df_model %>%
+  filter(!is.na(log_recommendations)) %>%
+  ggplot(aes(x = factor(pmin(n_categories, 15)), y = log_recommendations, fill = is_free)) +
+  geom_boxplot(outlier.size = 0.6, alpha = 0.8) +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  labs(
+    title    = "log(1 + Recommendations) by Number of Category Tags",
+    x        = "Number of Category Tags (capped at 15)",
+    y        = "log(1 + Recommendations)",
+    fill     = NULL
+  )
+```
+
+## 6.8 One-Hot Category Features: Rate by Free/Paid
+
+```{r cat-onehot-summary, fig.height=6}
+cat_rate_summary <- df_model %>%
+  group_by(is_free) %>%
+  summarise(across(all_of(cat_cols), ~ mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(-is_free, names_to = "category", values_to = "rate") %>%
+  mutate(category = str_remove(category, "^cat_") %>%
+                    str_replace_all("_", " ") %>%
+                    str_to_title())
+
+ggplot(cat_rate_summary, aes(x = reorder(category, rate), y = rate, fill = is_free)) +
+  geom_col(position = "dodge", width = 0.7) +
+  coord_flip() +
+  scale_fill_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "One-Hot Category Feature Rates by Free/Paid Status",
+    x     = NULL,
+    y     = "% of Games with Category",
+    fill  = NULL
+  )
+```
+
+------------------------------------------------------------------------
+
+# 7. Bivariate Relationships & Correlation
+
+## 7.1 Numeric Feature Correlations
+
+```{r correlation-matrix, fig.height=6}
+corr_df <- df_model %>%
+  select(
+    total_achievements, log_recommendations, platform_count,
+    metacritic_score, required_age, n_categories
+  ) %>%
+  drop_na()
+
+corr_matrix <- cor(corr_df, use = "pairwise.complete.obs")
+
+ggcorrplot(
+  corr_matrix,
+  method   = "square",
+  type     = "lower",
+  lab      = TRUE,
+  lab_size = 4,
+  colors   = c("#EF4444", "white", "#3B82F6"),
+  title    = "Pearson Correlation Matrix of Numeric Features",
+  ggtheme  = theme_minimal()
+)
+```
+
+## 7.2 Recommendations vs Categories
+
+```{r scatter-recs-cats, fig.height=4.5}
+df_model %>%
+  filter(!is.na(log_recommendations)) %>%
+  ggplot(aes(x = n_categories, y = log_recommendations, color = is_free)) +
+  geom_jitter(alpha = 0.25, size = 1.2, width = 0.3) +
+  geom_smooth(method = "loess", se = TRUE, linewidth = 1.2) +
+  scale_color_manual(values = c("Paid" = "#3B82F6", "Free" = "#10B981")) +
+  labs(
+    title    = "Recommendations vs Number of Feature Categories",
+    x        = "Number of Category Tags",
+    y        = "log(1 + Total Recommendations)",
+    color    = NULL
+  )
+```
+
+------------------------------------------------------------------------
