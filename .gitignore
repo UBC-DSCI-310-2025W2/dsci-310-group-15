@@ -1,1 +1,15 @@
-.DS_Store
+.DS_Store# R folders/files
+.Rhistory
+.RData
+.Rproj.user/
+.Ruserdata
+
+# Python
+__pycache__/
+*.pyc
+
+# Docker
+docker-compose.override.yml
+
+# Notebook checkpoints
+.ipynb_checkpoints/
