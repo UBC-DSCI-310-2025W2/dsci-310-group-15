@@ -27,7 +27,7 @@ RUN R -q -e "remotes::install_version('tidyverse', version = '2.0.0', repos = 'h
     R -q -e "remotes::install_version('vip', version = '0.4.5', repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('scales', version = '1.4.0', repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('ggcorrplot', version = '0.1.4.1', repos = 'https://cloud.r-project.org')" && \
-    R -q -e "remotes::install_version('patchwork', version = '1.3.2', repos = 'https://cloud.r-project.org')"
+    R -q -e "remotes::install_version('patchwork', version = '1.3.2', repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('purrr', version = '1.1.0', repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('caret', version = '7.0.1', repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('janitor', version = '2.2.1', repos = 'https://cloud.r-project.org')" && \
