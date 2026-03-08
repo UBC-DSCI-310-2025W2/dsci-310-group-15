@@ -3,12 +3,12 @@ name: Publish Docker image
 
 on:
   push:
-  workflow_dispatch:
     branches: 
         - dockerfile
     paths:
         - "Dockerfile"
         - ".github/workflows/publish_docker_image.yml"
+  workflow_dispatch:
 
 jobs:
   push_to_registry:
