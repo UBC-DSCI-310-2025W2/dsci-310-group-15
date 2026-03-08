@@ -1,7 +1,7 @@
 FROM rocker/r-ver:4.4.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \ 
+    git \
     git-lfs \
     python3 \
     python3-pip \
@@ -14,7 +14,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN git lfs install --system
 
-RUN pip3 install --no-cache-dir jupyterlab
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir jupyterlab
 
 RUN install2.r --error --skipinstalled --ncpus -1 \
   tidyverse \
