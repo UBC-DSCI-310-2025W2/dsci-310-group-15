@@ -15,7 +15,7 @@ dsci-310-group-15/
 ├── data/
 │   └── games_sample.json
 ├── src
-│   └── video_game_analysis.Rmd
+│   └── full_steam_analysis.Rmd
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md
 ├── Dockerfile
@@ -75,7 +75,6 @@ R packages:
 * scales
 * ggcorrplot
 * patchwork
-* purrr
 
 ## License
 This project uses the **MIT License**. See `LICENSE` for more information.
