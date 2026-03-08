@@ -1,6 +1,8 @@
 FROM rocker/r-ver:4.4.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \ 
+    git-lfs \
     python3 \
     python3-pip \
     libzmq3-dev \
