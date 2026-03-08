@@ -21,18 +21,26 @@ RUN git lfs install --system
 
 RUN pip3 install --no-cache-dir --break-system-packages jupyterlab
 
-RUN R -q -e "install.packages('renv', repos = 'https://cloud.r-project.org')"
+RUN install2.r --error --skipinstalled --ncpus -1 \
+    tidyverse \
+    jsonlite \
+    lubridate \
+    vip \
+    scales \
+    ggcorrplot \
+    patchwork \
+    purrr \
+    IRkernel \
+    caret \
+    janitor \
+    pROC
 
 WORKDIR /home/rstudio/dsci-310-group-15
 
-COPY renv.lock renv.lock 
-
-RUN R -q -e "renv::restore(lockfile = 'renv.lock', prompt = FALSE)"
-
-RUN R -q  -e "IRkernel::installspec(user = FALSE)"
-
 COPY steam_full_analysis.ipynb .
 COPY data/ data/
+
+RUN R -q  -e "IRkernel::installspec(user = FALSE)"
 
 EXPOSE 8888
 
