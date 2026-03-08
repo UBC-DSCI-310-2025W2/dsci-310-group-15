@@ -10,6 +10,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     libxml2-dev \
     libgit2-dev \
+    pkg-config \
+    libfontconfig1-dev \
+    libfreetype6-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git lfs install --system
@@ -26,7 +31,8 @@ RUN R -q -e "renv::restore(lockfile = 'renv.lock', prompt = FALSE)"
 
 RUN R -q  -e "IRkernel::installspec(user = FALSE)"
 
-COPY . .
+COPY steam_full_analysis.ipynb .
+COPY data/ data/
 
 EXPOSE 8888
 
