@@ -55,3 +55,6 @@ R packages:
 * ggcorrplot
 * patchwork
 * purrr
+
+### License
+This project uses the **MIT License**
