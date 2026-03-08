@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     libxml2-dev \
     libgit2-dev \
+    pkg-config \
+    libfontconfig1-dev \
+    libfreetype6-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git lfs install --system
