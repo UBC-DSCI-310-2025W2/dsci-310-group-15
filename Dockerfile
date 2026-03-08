@@ -27,8 +27,6 @@ WORKDIR /home/rstudio/dsci-310-group-15
 
 COPY renv.lock renv.lock
 COPY renv/activate.R renv/activate.R
-COPY renv/settings.json renv/settings.json
-COPY .Rprofile .Rprofile
 
 RUN R -e "renv::restore(prompt = FALSE)"
 
