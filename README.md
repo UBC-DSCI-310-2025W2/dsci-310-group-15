@@ -17,14 +17,13 @@ dsci-310-group-15/
 ├── data/
 │   └── games_sample.json
 ├── src/
-│   └── full_steam_analysis.Rmd
+│   └── steam_full_analysis.ipynb
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md
 ├── Dockerfile
 ├── LICENSE
 ├── README.md
 ├── renv.lock
-├── steam_eda.Rmd
 ├── .github/
 │   └── workflows/
 │       └── publish_docker_image.yml
