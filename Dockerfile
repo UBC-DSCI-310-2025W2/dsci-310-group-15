@@ -36,7 +36,7 @@ RUN R -q -e "remotes::install_version('tidyverse', version = '2.0.0', repos = 'h
 
 WORKDIR /home/rstudio/dsci-310-group-15
 
-COPY steam_full_analysis.ipynb .
+COPY src/steam_full_analysis.ipynb .
 COPY data/ data/
 
 RUN R -q  -e "IRkernel::installspec(user = FALSE)"
