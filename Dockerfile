@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN git lfs install --system
 
-RUN pip3 install --no-cache-dir jupyterlab
+RUN pip3 install --no-cache-dir --break-system-packages jupyterlab
 
 RUN R -q -e "install.packages('renv', repos = 'https://cloud.r-project.org')"
 
