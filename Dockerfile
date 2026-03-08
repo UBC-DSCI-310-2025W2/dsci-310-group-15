@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jupyter-client \
     && rm -rf /var/lib/apt/lists/*
 
+RUN git lfs install --system
+
 RUN pip3 install --no-cache-dir jupyterlab
 
 RUN install2.r --error --skipinstalled --ncpus -1 \
