@@ -5,11 +5,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git-lfs \
     python3 \
     python3-pip \
+    python3-venv \
     libzmq3-dev \
     libcurl4-openssl-dev \
     libssl-dev \
-    jupyter-core \
-    jupyter-client \
+    libxml2-dev \
+    libgit2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git lfs install --system
@@ -20,21 +21,20 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir jupyterlab
 
-RUN install2.r --error --skipinstalled --ncpus -1 \
-  tidyverse \
-  jsonlite \
-  lubridate \
-  vip \
-  scales \
-  ggcorrplot \
-  patchwork \
-  purrr \
-  IRkernel  \
-&& rm -rf /tmp/downloaded_packages
+RUN R -e "install.packages('renv', repos = 'https://cloud.r-project.org')"
+
+WORKDIR /home/rstudio/dsci-310-group-15
+
+COPY renv.lock renv.lock
+COPY renv/activate.R renv/activate.R
+COPY renv/settings.json renv/settings.json
+COPY .Rprofile .Rprofile
+
+RUN R -e "renv::restore(prompt = FALSE)"
 
 RUN R -e "IRkernel::installspec(user = FALSE)"
 
-WORKDIR /home/rstudio/dsci-310-group-15
+COPY . .
 
 EXPOSE 8888
 
