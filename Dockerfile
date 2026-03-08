@@ -31,7 +31,8 @@ RUN R -q -e "renv::restore(lockfile = 'renv.lock', prompt = FALSE)"
 
 RUN R -q  -e "IRkernel::installspec(user = FALSE)"
 
-COPY . .
+COPY steam_full_analysis.ipynb .
+COPY games_sample.json .
 
 EXPOSE 8888
 
