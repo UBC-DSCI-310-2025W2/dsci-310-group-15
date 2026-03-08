@@ -76,6 +76,10 @@ R packages:
 * scales (1.4.0)
 * ggcorrplot (0.1.4.1)
 * patchwork (1.3.2)
+* purrr (1.1.0)
+* caret (7.0.1)
+* janitor (2.2.1)
+* pROC (1.19.0.1)
 
 ## License
 This project uses the **MIT License**. See `LICENSE` for more information.
