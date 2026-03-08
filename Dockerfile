@@ -1,11 +1,10 @@
-FROM rocker/r-ver:4.4.2
+FROM rocker/r-ver:4.5.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     git-lfs \
     python3 \
     python3-pip \
-    python3-venv \
     libzmq3-dev \
     libcurl4-openssl-dev \
     libssl-dev \
@@ -15,22 +14,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN git lfs install --system
 
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+RUN pip3 install --no-cache-dir jupyterlab
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir jupyterlab
-
-RUN R -e "install.packages('renv', repos = 'https://cloud.r-project.org')"
+RUN R -q -e "install.packages('renv', repos = 'https://cloud.r-project.org')"
 
 WORKDIR /home/rstudio/dsci-310-group-15
 
-COPY renv.lock renv.lock
-COPY renv/activate.R renv/activate.R
+COPY renv.lock renv.lock 
 
-RUN R -e "renv::restore(prompt = FALSE)"
+RUN R -q -e "renv::restore(lockfile = 'renv.lock', prompt = FALSE)"
 
-RUN R -e "IRkernel::installspec(user = FALSE)"
+RUN R -q  -e "IRkernel::installspec(user = FALSE)"
 
 COPY . .
 
