@@ -1,4 +1,4 @@
-.DS_Store# R folders/files
+# R folders/files
 .Rhistory
 .RData
 .Rproj.user/
@@ -16,3 +16,5 @@ docker-compose.override.yml
 .DS_Store
 /data
 .Rproj.user
+
+node_modules
