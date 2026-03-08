@@ -4,10 +4,13 @@ name: Publish Docker image
 on:
   push:
     branches: 
+        - main 
+        - dockerfile-fix
         - dockerfile
     paths:
         - "Dockerfile"
         - ".github/workflows/publish_docker_image.yml"
+        - "renv.lock"
   workflow_dispatch:
 
 jobs:
@@ -43,3 +46,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
