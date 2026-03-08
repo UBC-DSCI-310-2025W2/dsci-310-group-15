@@ -69,13 +69,13 @@ R programming language:
 * R (4.5.2)
 
 R packages:
-* tidyverse
-* jsonlite
-* lubridate
-* vip
-* scales
-* ggcorrplot
-* patchwork
+* tidyverse (2.0.0)
+* jsonlite (2.0.0)
+* lubridate (1.9.5)
+* vip (0.4.5)
+* scales (1.4.0)
+* ggcorrplot (0.1.4.1)
+* patchwork (1.3.2)
 
 ## License
 This project uses the **MIT License**. See `LICENSE` for more information.
