@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     libfontconfig1-dev \
     libfreetype6-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git lfs install --system
