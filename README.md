@@ -65,7 +65,7 @@ To replicate the analysis, clone this GitHub repository, install the dependencie
 
 Dependencies
 R version 
-* R 4.4.2 
+* R 4.5.2 
 
 R packages:
 * tidyverse
