@@ -1,0 +1,544 @@
+---
+title: "End-to-End Predictive Modeling: Steam Games"
+author: "Group 15: Buyang Daffa, Cathy Zhang, Elaine Tao, Thê Quach"
+date: today
+format:
+  html:
+    toc: true
+bibliography: references.bib
+editor: source
+---
+
+```{r}
+#| message: false
+#| warning: false
+
+required_packages <- c(
+  "jsonlite", "tidyverse", "lubridate", "caret", "scales",
+  "patchwork", "purrr", "janitor", "pROC"
+)
+
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+if (length(missing_packages) > 0) {
+  stop(paste0(
+    "Please install these packages before running the notebook: ",
+    paste(missing_packages, collapse = ", ")
+  ))
+}
+
+invisible(lapply(required_packages, library, character.only = TRUE))
+
+set.seed(123)
+```
+
+# Summary
+
+This report presents a full end-to-end predictive modeling workflow for Steam game
+metadata, aimed at predicting whether a game is free-to-play or paid. Using a snapshot
+of approximately 5,000 Steam games collected in August 2025 (@vintagedon2025dataset),
+we engineer features from game attributes — including genre, supported platforms,
+developer, and release year — and train a cross-validated logistic regression classifier.
+The final model achieves 95.9% accuracy and a ROC AUC of 0.923 on the held-out test
+set, substantially outperforming a majority-class baseline of 79.4%.
+
+# Introduction
+
+Steam is the world's largest PC game distribution platform, with over 10,000 annual
+releases (@statista2026steam) and around 20 million daily active users (@steam_charts).
+Its open submission program allows indie and small studios to reach a global audience,
+making the platform's catalogue highly diverse in both genre and monetisation strategy.
+
+Being able to predict whether a game will be free or not will help groups determine
+pricing structure, target audience, and game longevity. The following groups would be
+particularly interested:
+
+- Developers making pre-launch decisions about pricing, feature scope, and genre
+  positioning.
+- Publishers evaluating which projects to greenlight or invest in.
+- Platform researchers studying what drives quality signals in large content marketplaces.
+
+The dataset used is the Steam 2025 5K Games Dataset (@vintagedon2025dataset):
+a gzip-compressed JSON snapshot of approximately 5,000 Steam game records taken on
+August 31, 2025. Key fields include `steam_appid`, `name`, `is_free` (the target
+variable), `genres`, `categories`, `platforms`, `release_date`, `required_age`, and
+`developer`.
+
+Specifically, we ask:
+
+1. What game attributes differ most between free-to-play and paid titles?
+2. Can a machine learning classifier accurately distinguish free and paid games using
+   only pre-launch observable features?
+3. Which features contribute most to that classification?
+
+# Methods & Results
+
+## Data Loading and Cleaning
+
+The R programming language (@R) and the following R packages were used to perform
+the analysis: tidyverse (@tidyverse), caret (@caret), pROC (@pROC), janitor
+(@janitor), lubridate (@lubridate), scales (@scales), patchwork (@patchwork),
+jsonlite (@jsonlite), and Quarto (@Allaire_Quarto_2022).
+
+The dataset is loaded from a local JSON file. Multiple candidate paths are checked
+so the script runs across different directory layouts. Column names are simplified
+from verbose dot-separated API paths to concise labels, and key type conversions
+are applied: `is_free` becomes a two-level factor (`"Free"` / `"Paid"`), platform
+flags are cast to logical and summed into `platform_count`, and release year is
+extracted from raw date strings using `lubridate::mdy()`. The top 20 most-frequent
+game categories are one-hot encoded as `cat_*` indicator columns. Missing values
+are imputed with sensible defaults rather than dropped, keeping data loss below 10%.
+Duplicate `game_id` rows are removed with `distinct()`.
+
+```{r}
+#| message: false
+#| warning: false
+
+# ---- Locate and load the dataset ----
+possible_paths <- c(
+  "../data/games_sample.json",
+  "data/games_sample.json",
+  "./data/games_sample.json",
+  "/mnt/data/games_sample.json"
+)
+
+data_path <- possible_paths[file.exists(possible_paths)][1]
+
+if (is.na(data_path) || length(data_path) == 0) {
+  stop(paste(
+    "Could not find games_sample.json. Expected one of:",
+    paste(possible_paths, collapse = ", ")
+  ))
+}
+
+raw <- fromJSON(data_path, flatten = TRUE)
+
+if (!"games" %in% names(raw)) {
+  stop("The JSON file does not contain a top-level `games` field.")
+}
+
+df <- raw$games
+
+if ("app_details.data.categories" %in% names(df)) {
+  attr(df[["app_details.data.categories"]], "dim") <- NULL
+}
+
+# ---- Feature engineering ----
+flat_data <- df |>
+  rename(
+    game_id         = appid,
+    game_name       = name_from_applist,
+    required_age    = app_details.data.required_age,
+    is_free         = app_details.data.is_free,
+    game_type       = app_details.data.type,
+    release_date    = app_details.data.release_date.date,
+    windows_support = app_details.data.platforms.windows,
+    mac_support     = app_details.data.platforms.mac,
+    linux_support   = app_details.data.platforms.linux,
+    categories      = app_details.data.categories,
+    dlc             = app_details.data.dlc,
+    demos           = app_details.data.demos,
+    developers      = app_details.data.developers,
+    publishers      = app_details.data.publishers
+  ) |>
+  mutate(
+    is_free             = factor(is_free, levels = c(TRUE, FALSE), labels = c("Free", "Paid")),
+    required_age        = suppressWarnings(as.integer(required_age)),
+    game_type           = as.factor(game_type),
+    release_date_parsed = suppressWarnings(mdy(release_date)),
+    release_year        = year(release_date_parsed),
+    windows_support     = as.logical(windows_support),
+    mac_support         = as.logical(mac_support),
+    linux_support       = as.logical(linux_support),
+    platform_count      = as.integer(replace_na(windows_support, FALSE)) +
+                          as.integer(replace_na(mac_support,     FALSE)) +
+                          as.integer(replace_na(linux_support,   FALSE)),
+    has_dlc             = map_lgl(dlc,   ~ length(.x) > 0),
+    has_demo            = map_lgl(demos, ~ length(.x) > 0),
+    category_list       = map(categories, function(cat) {
+      if (is.null(cat) || !is.data.frame(cat) || nrow(cat) == 0) return(character(0))
+      if ("description" %in% names(cat)) return(cat$description)
+      character(0)
+    }),
+    n_categories   = map_int(category_list, length),
+    developer_name = map_chr(developers, ~ if (length(.x) > 0) .x[[1]] else NA_character_),
+    publisher_name = map_chr(publishers, ~ if (length(.x) > 0) .x[[1]] else NA_character_)
+  )
+
+all_cats <- flat_data |>
+  select(game_id, category_list) |>
+  unnest(category_list) |>
+  rename(category = category_list)
+
+top_categories <- all_cats |>
+  count(category, sort = TRUE) |>
+  slice_head(n = 20) |>
+  pull(category)
+
+for (cat_name in top_categories) {
+  col_name <- paste0("cat_", janitor::make_clean_names(cat_name))
+  flat_data[[col_name]] <- map_lgl(flat_data$category_list, ~ cat_name %in% .x)
+}
+
+cat_cols <- grep("^cat_", names(flat_data), value = TRUE)
+
+df_model <- flat_data |>
+  transmute(
+    game_id,
+    game_name,
+    is_free,
+    required_age    = replace_na(required_age, 0L),
+    release_year    = replace_na(release_year, -1L),
+    game_type       = fct_na_value_to_level(game_type, level = "unknown"),
+    windows_support = replace_na(windows_support, FALSE),
+    mac_support     = replace_na(mac_support,     FALSE),
+    linux_support   = replace_na(linux_support,   FALSE),
+    platform_count,
+    has_dlc         = replace_na(has_dlc,  FALSE),
+    has_demo        = replace_na(has_demo, FALSE),
+    n_categories    = replace_na(n_categories, 0L),
+    developer_name,
+    publisher_name,
+    across(all_of(cat_cols), ~ replace_na(.x, FALSE))
+  ) |>
+  filter(!is.na(is_free)) |>
+  distinct(game_id, .keep_all = TRUE)
+```
+
+## Exploratory Data Analysis
+
+The dataset is heavily imbalanced: paid games account for 79.4% of records and free
+games for only 20.6% (@fig-target-dist). This means a naive majority-class classifier
+would already achieve ~79% accuracy, so model accuracy must be interpreted alongside
+sensitivity and specificity.
+
+```{r}
+#| label: fig-target-dist
+#| fig-cap: "Class distribution of the target variable. Paid games outnumber free games roughly 4:1."
+#| fig-width: 5
+#| fig-height: 4
+
+class_counts <- df_model |>
+  count(is_free) |>
+  mutate(
+    pct   = n / sum(n),
+    label = paste0(comma(n), "\n(", percent(pct, accuracy = 0.1), ")")
+  )
+
+ggplot(class_counts, aes(x = is_free, y = n, fill = is_free)) +
+  geom_col(width = 0.55, show.legend = FALSE) +
+  geom_text(aes(label = label), vjust = -0.3, size = 4.3, fontface = "bold") +
+  scale_fill_manual(values = c("Free" = "#10B981", "Paid" = "#3B82F6")) +
+  scale_y_continuous(labels = comma, expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "Target Distribution: Free vs Paid Games", x = NULL, y = "Number of Games") +
+  theme_minimal()
+```
+
+@fig-numeric-dist shows distributions of the four key numeric predictors. `n_categories`
+is right-skewed: most games belong to just a few categories. `platform_count` clusters
+at 1, reflecting that most titles are Windows-only. `release_year` rises sharply
+post-2015 as Steam's catalogue expanded. `required_age` is concentrated at 0, as most
+games carry no age restriction.
+
+```{r}
+#| label: fig-numeric-dist
+#| fig-cap: "Distributions of the four key numeric predictors."
+
+numeric_vars <- df_model |>
+  select(required_age, release_year, platform_count, n_categories) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  drop_na()
+
+ggplot(numeric_vars, aes(x = value, fill = variable)) +
+  geom_histogram(bins = 40, color = "white", linewidth = 0.2, show.legend = FALSE) +
+  facet_wrap(~ variable, scales = "free", ncol = 2) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Distribution of Key Numeric Predictors", x = NULL, y = "Count") +
+  theme_minimal()
+```
+
+@fig-feature-rel presents three complementary views of feature relationships by class.
+Release-year distributions are similarly shaped for both classes, but paid games
+dominate numerically throughout. The binary feature panel is the most striking: paid
+games are far more likely to have DLC or a demo available, consistent with using demos
+to drive paid conversions.
+
+```{r}
+#| label: fig-feature-rel
+#| fig-cap: "Feature relationships broken down by free vs paid status."
+#| fig-height: 14
+
+p1 <- ggplot(df_model |> filter(release_year > 0), aes(x = release_year, fill = is_free)) +
+  geom_histogram(position = "identity", alpha = 0.55, bins = 30) +
+  scale_fill_manual(values = c("Free" = "#10B981", "Paid" = "#3B82F6")) +
+  labs(title = "Release Year by Class", x = "Release Year", y = "Count", fill = NULL) +
+  theme_minimal()
+
+p2 <- df_model |>
+  mutate(n_categories_capped = pmin(n_categories, 15L)) |>
+  ggplot(aes(x = factor(n_categories_capped), y = platform_count, fill = is_free)) +
+  geom_boxplot(alpha = 0.65, outlier.size = 0.7) +
+  scale_fill_manual(values = c("Free" = "#10B981", "Paid" = "#3B82F6")) +
+  labs(
+    title = "Platform Count by Number of Categories",
+    x = "Number of Categories (capped at 15)", y = "Platform Count", fill = NULL
+  ) +
+  theme_minimal()
+
+p3 <- df_model |>
+  group_by(is_free) |>
+  summarise(`Has DLC` = mean(has_dlc), `Has Demo` = mean(has_demo), .groups = "drop") |>
+  pivot_longer(-is_free, names_to = "feature", values_to = "pct") |>
+  ggplot(aes(x = feature, y = pct, fill = is_free)) +
+  geom_col(position = "dodge", width = 0.6) +
+  geom_text(
+    aes(label = percent(pct, accuracy = 0.1)),
+    position = position_dodge(width = 0.6), vjust = -0.35, size = 3.8
+  ) +
+  scale_fill_manual(values = c("Free" = "#10B981", "Paid" = "#3B82F6")) +
+  scale_y_continuous(labels = percent, limits = c(0, 1.05)) +
+  labs(title = "Binary Feature Rates by Class", x = NULL, y = "Proportion", fill = NULL) +
+  theme_minimal()
+
+p1 / p2 / p3
+```
+
+@fig-cat-analysis summarises category-level patterns. Single-player is the most
+prevalent tag overall, followed by family sharing and Steam achievements. The divergence
+panel shows that single-player games strongly skew paid, while multiplayer and Steam
+leaderboard games tilt slightly toward free — consistent with free-to-play titles
+relying on large player pools for engagement.
+
+```{r}
+#| label: fig-cat-analysis
+#| fig-cap: "Category coverage, prevalence, and divergence between free and paid games."
+#| fig-height: 18
+
+cat_coverage <- df_model |>
+  mutate(has_categories = n_categories > 0) |>
+  group_by(is_free) |>
+  summarise(pct = mean(has_categories), .groups = "drop")
+
+p1 <- ggplot(cat_coverage, aes(x = is_free, y = pct, fill = is_free)) +
+  geom_col(width = 0.5, show.legend = FALSE) +
+  geom_text(aes(label = percent(pct, accuracy = 0.1)), vjust = -0.4, size = 4.4, fontface = "bold") +
+  scale_fill_manual(values = c("Free" = "#10B981", "Paid" = "#3B82F6")) +
+  scale_y_continuous(labels = percent, limits = c(0, 1.05)) +
+  labs(title = "% of Games with At Least One Category", x = NULL, y = "% with Categories") +
+  theme_minimal()
+
+p2 <- all_cats |>
+  count(category, sort = TRUE) |>
+  slice_head(n = 20) |>
+  mutate(pct = n / nrow(df_model)) |>
+  ggplot(aes(x = reorder(category, pct), y = pct)) +
+  geom_col(fill = "#6366F1", width = 0.7) +
+  geom_text(aes(label = percent(pct, accuracy = 0.1)), hjust = -0.1, size = 3.2) +
+  coord_flip() +
+  scale_y_continuous(labels = percent, limits = c(0, 1.05)) +
+  labs(title = "Top 20 Categories by Prevalence", x = NULL, y = "% of All Games") +
+  theme_minimal()
+
+cat_prev <- flat_data |>
+  select(game_id, is_free, category_list) |>
+  unnest(category_list) |>
+  rename(category = category_list) |>
+  filter(category %in% top_categories) |>
+  count(is_free, category) |>
+  left_join(df_model |> count(is_free, name = "group_total"), by = "is_free") |>
+  mutate(pct = n / group_total)
+
+cat_diff <- cat_prev |>
+  select(is_free, category, pct) |>
+  pivot_wider(names_from = is_free, values_from = pct, values_fill = 0) |>
+  mutate(diff = Free - Paid, direction = if_else(diff > 0, "Free > Paid", "Paid > Free")) |>
+  arrange(desc(abs(diff)))
+
+p3 <- ggplot(cat_diff, aes(x = reorder(category, diff), y = diff, fill = direction)) +
+  geom_col(width = 0.7) +
+  geom_text(
+    aes(label = paste0(if_else(diff > 0, "+", ""), percent(diff, accuracy = 0.1))),
+    hjust = if_else(cat_diff$diff > 0, -0.1, 1.1), size = 3.1
+  ) +
+  coord_flip() +
+  scale_fill_manual(values = c("Free > Paid" = "#10B981", "Paid > Free" = "#3B82F6")) +
+  scale_y_continuous(labels = percent, limits = c(-0.85, 0.85)) +
+  labs(
+    title = "Difference in Category Prevalence (Free - Paid)",
+    x = NULL, y = "Difference in Prevalence", fill = NULL
+  ) +
+  theme_minimal()
+
+p1 / p2 / p3
+```
+
+## Modeling
+
+The dataset is split 80/20 into training and test sets using stratified sampling
+(`createDataPartition`) to preserve the class ratio. Only features observable before
+a game's commercial release are included as predictors, making the model applicable to
+pre-launch decisions. A majority-class baseline — predicting "Paid" for every
+observation — yields 79.4% accuracy, the benchmark our model must beat.
+
+Logistic regression is chosen for its interpretability and ease of deployment. We use
+`caret::train()` (@caret) with 5-fold cross-validation, optimising for ROC AUC.
+
+```{r}
+#| message: false
+#| warning: false
+
+set.seed(123)
+train_idx <- createDataPartition(df_model$is_free, p = 0.80, list = FALSE)
+train_df  <- df_model[train_idx, ]
+test_df   <- df_model[-train_idx, ]
+
+predictor_names <- c(
+  "required_age", "release_year", "game_type",
+  "windows_support", "mac_support", "linux_support",
+  "platform_count", "has_dlc", "has_demo", "n_categories",
+  grep("^cat_", names(df_model), value = TRUE)
+)
+
+train_model <- train_df |> select(is_free, all_of(predictor_names))
+test_model  <- test_df  |> select(is_free, all_of(predictor_names))
+
+baseline_class    <- train_model |> count(is_free, sort = TRUE) |> slice(1) |> pull(is_free) |> as.character()
+baseline_pred     <- factor(rep(baseline_class, nrow(test_model)), levels = levels(test_model$is_free))
+baseline_cm       <- confusionMatrix(baseline_pred, test_model$is_free, positive = "Free")
+baseline_accuracy <- unname(baseline_cm$overall["Accuracy"])
+
+ctrl <- trainControl(
+  method = "cv", number = 5,
+  classProbs = TRUE, summaryFunction = twoClassSummary,
+  savePredictions = "final"
+)
+
+model_formula <- as.formula(paste("is_free ~", paste(predictor_names, collapse = " + ")))
+
+set.seed(123)
+fit_glm <- caret::train(
+  model_formula, data = train_model,
+  method = "glm", family = binomial(),
+  metric = "ROC", trControl = ctrl
+)
+
+fit_glm
+```
+
+## Evaluation
+
+We evaluate the model on the held-out test set using probability-based predictions
+thresholded at 0.5. We present classification metrics in @tbl-metrics.
+
+```{r}
+#| label: tbl-metrics
+#| tbl-cap: "Classification metrics for the logistic regression model on the held-out test set."
+#| message: false
+
+prob_free  <- predict(fit_glm, newdata = test_model, type = "prob")$Free
+pred_class <- factor(ifelse(prob_free >= 0.5, "Free", "Paid"), levels = levels(test_model$is_free))
+
+cm <- confusionMatrix(pred_class, test_model$is_free, positive = "Free")
+roc_obj <- pROC::roc(
+  response  = test_model$is_free,
+  predictor = prob_free,
+  levels    = c("Paid", "Free"),
+  direction = "<"
+)
+
+metrics_tbl <- tibble(
+  Metric = c(
+    "Baseline Accuracy", "Model Accuracy",
+    "Sensitivity (Recall for Free)", "Specificity",
+    "Balanced Accuracy", "ROC AUC"
+  ),
+  Value = round(c(
+    baseline_accuracy,
+    unname(cm$overall["Accuracy"]),
+    unname(cm$byClass["Sensitivity"]),
+    unname(cm$byClass["Specificity"]),
+    unname(cm$byClass["Balanced Accuracy"]),
+    as.numeric(pROC::auc(roc_obj))
+  ), 4)
+)
+
+knitr::kable(metrics_tbl)
+```
+
+The model improves on the baseline by 16 percentage points. Specificity is near-perfect
+at 0.990, while sensitivity reaches 0.838. Cohen's Kappa of 0.867 confirms performance
+well beyond chance (@cadili2015cohens). Balanced accuracy of 0.914 — the mean per-class
+recall — indicates the model handles both classes reasonably despite the imbalance
+(@desilva2024balanced).
+
+We can see from @tbl-metrics that the model achieves an overall accuracy of 95.9%.
+In @fig-roc we show the ROC curve, which hugs the top-left corner (AUC = 0.923),
+confirming strong discriminative ability.
+
+```{r}
+#| label: fig-roc
+#| fig-cap: "ROC curve on the held-out test set. AUC = 0.923."
+#| fig-width: 5
+#| fig-height: 5
+
+plot(roc_obj, main = "Test ROC Curve: Predicting Free vs Paid")
+abline(a = 0, b = 1, lty = 2, col = "gray50")
+```
+
+The five most important predictors identified by the model are family sharing,
+single-player, Steam leaderboards, multiplayer, and demo availability. Variable
+importance scores are presented in @tbl-varimp.
+
+```{r}
+#| label: tbl-varimp
+#| tbl-cap: "Top 15 variable importance scores from the logistic regression model."
+
+coef_tbl <- summary(fit_glm$finalModel)$coefficients |>
+  as.data.frame() |>
+  rownames_to_column("Term") |>
+  as_tibble() |>
+  arrange(desc(abs(Estimate))) |>
+  slice_head(n = 15) |>
+  select(Term, Estimate, `Std. Error`, `z value`, `Pr(>|z|)`) |>
+  mutate(across(where(is.numeric), ~ round(.x, 4)))
+
+knitr::kable(coef_tbl)
+```
+
+Note that we define standard deviation (of a sample) as
+
+$$s = \sqrt{\frac{\sum_{i=1}^N (x_i - \overline{x})^2}{N-1}}$$
+
+and that family sharing (`cat_family_sharing`) has the largest absolute coefficient
+of all predictors in @tbl-varimp, making it the single most influential feature in
+the model.
+
+# Discussion
+
+The logistic regression classifier achieves strong overall performance (accuracy 0.959,
+AUC 0.923), but the asymmetry between sensitivity (0.838) and specificity (0.990)
+warrants careful interpretation. The model is more reliable at identifying paid games
+than free ones — a consequence of the 4:1 class imbalance in the training data. For
+applications where correctly flagging free games matters most, a lower decision
+threshold or class-weighting during training would be preferable.
+
+The variable importance results are counterintuitive in places. Family sharing emerges
+as the single strongest predictor of a game being *free*, yet the EDA showed that paid
+games have family sharing more often in absolute frequency. The logistic regression
+coefficient captures the conditional relationship after controlling for all other
+variables, which can reverse marginal associations — a known consequence of
+multivariate adjustment.
+
+The strong influence of the single-player category on predicting *paid* games aligns
+with industry convention: narrative or campaign-driven titles typically require a
+purchase, whereas free-to-play games rely on multiplayer engagement and microtransactions
+for revenue. Similarly, the presence of Steam leaderboards as a predictor for free games
+is consistent with competitive, score-driven free-to-play titles.
+
+An interesting follow-up analysis would be to define multiplayer sub-categories
+(MOBA, MMORPG, co-op) to determine whether finer genre distinctions further improve
+predictive power, or to extend the target variable beyond a binary free/paid split
+to capture the full pricing distribution.
+
+# References
