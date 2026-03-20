@@ -80,6 +80,7 @@ R packages:
 * caret (7.0.1)
 * janitor (2.2.1)
 * pROC (1.19.0.1)
+* docopt (0.7.2)
 
 ## License
 This project uses the **MIT License**. See `LICENSE` for more information.
