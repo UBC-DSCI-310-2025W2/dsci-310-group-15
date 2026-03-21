@@ -106,7 +106,7 @@ preprocess <- function(output_location_from_01, output_to_location_02, processed
       is_free,
       required_age = replace_na(required_age, 0L),
       release_year = replace_na(release_year, -1L),
-      game_type = fct_explicit_na(game_type, na_level = "unknown"),
+      game_type = fct_na_value_to_level(game_type, level = "unknown"),
       windows_support = replace_na(windows_support, FALSE),
       mac_support = replace_na(mac_support, FALSE),
       linux_support = replace_na(linux_support, FALSE),
@@ -129,3 +129,5 @@ preprocess <- function(output_location_from_01, output_to_location_02, processed
   saveRDS(df_model, paste(output_to_location_02, 'wrangled_table.RDS', sep = ''))
 
 }
+
+preprocess(opt$output_location_from_01, opt$output_to_location_02, opt$processed_table_storage)

@@ -34,14 +34,16 @@ theme_set(
 opt <- docopt(doc)
 
 # ---- Category-level predictive signals ----
-categorical_plotter <- function() {
+categorical_plotter <- function(output_location_from_02, output_to_location_06, figure_storage_path) {
   df_model <- readRDS(paste(output_location_from_02, 'wrangled_table.RDS', sep = ''))
 
-  cat_prev <- flat_data |>
-    select(game_id, is_free, category_list) |>
-    unnest(category_list) |>
-    rename(category = category_list) |>
-    filter(category %in% top_categories) |>
+  # Rebuild cat_prev from the cat_ indicator columns already in df_model
+  cat_cols <- grep("^cat_", names(df_model), value = TRUE)
+
+  cat_prev <- df_model |>
+    select(game_id, is_free, all_of(cat_cols)) |>
+    pivot_longer(cols = all_of(cat_cols), names_to = "category", values_to = "present") |>
+    filter(present) |>
     count(is_free, category) |>
     left_join(df_model |> count(is_free, name = "class_total"), by = "is_free") |>
     mutate(rate = n / class_total)
@@ -72,9 +74,10 @@ categorical_plotter <- function() {
       title = "Largest Class Differences in Top Category Prevalence",
       x = "Category",
       y = "Free Rate - Paid Rate"
-  )
+    )
 
-  saveRDS(categorical_feat_gap, file = paste(output_to_location_06, 'numeric-feature-distributions.png', sep = ''))
+  saveRDS(categorical_feat_gap, file = paste(output_to_location_06, 'categorical_feat_gap.RDS', sep = ''))
   ggsave(categorical_feat_gap, file = paste(figure_storage_path, 'categorical_feat_gap.png', sep = ''))
-
 }
+
+categorical_plotter(opt$output_location_from_02, opt$output_location_06, opt$figure_storage_path)
