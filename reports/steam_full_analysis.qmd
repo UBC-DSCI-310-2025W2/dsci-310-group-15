@@ -1,5 +1,5 @@
 ---
-title: "End-to-End Predictive Modeling: Steam Games"
+title: "Predicting Whether a Steam Game is Free"
 author: "Group 15: Buyang Daffa, Cathy Zhang, Elaine Tao, Thê Quach"
 date: today
 format:
@@ -7,6 +7,8 @@ format:
     toc: true
 bibliography: references.bib
 editor: source
+execute:
+  echo: false
 ---
 
 ```{r}
