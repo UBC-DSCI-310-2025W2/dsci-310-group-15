@@ -59,3 +59,5 @@ distribution_check <- function(output_location_from_02, output_to_location_03, f
   saveRDS(class_distribution_plot, paste(output_to_location_03, 'wrangled_table.RDS', sep = ''))
   ggsave(class_distribution_plot, file = paste(figure_storage_path, 'class_distribution_plot.png', sep = ''))
 }
+
+distribution_check(opt$output_location_from_02, opt$output_to_location_03, opt$figure_storage_path)

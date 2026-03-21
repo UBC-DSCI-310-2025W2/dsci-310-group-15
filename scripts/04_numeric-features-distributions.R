@@ -57,6 +57,9 @@ numeric_dists <- function(output_location_from_02, output_to_location_04, figure
       y = "Count"
     )
 
-  saveRDS(numeric_grid_distribution, file = paste(output_to_location_04, 'numeric-feature-distributions.png', sep = ''))
-  ggsave(numeric_grid_distribution, file = paste(figure_storage_path, 'numeric-feature-distributions.png', sep = ''))
+saveRDS(numeric_grid_distribution, file = paste(output_to_location_04, 'numeric_feature_distributions.RDS', sep = ''))
+ggsave(numeric_grid_distribution, file = paste(figure_storage_path, 'numeric_feature_distributions.png', sep = ''))
+
 }
+
+numeric_dists(opt$output_location_from_02, opt$output_to_location_04, opt$figure_storage_path)

@@ -38,7 +38,7 @@ additional_target_plots <- function(output_location_from_02, output_location_05,
   df_model <- readRDS(paste(output_location_from_02, 'wrangled_table.RDS', sep = ''))
 
   release_by_class <- df_model |>
-    ilter(release_year > 0) |>
+    filter(release_year > 0) |>
     count(release_year, is_free)
 
   p_release <- ggplot(release_by_class, aes(x = release_year, y = n, color = is_free)) +
@@ -79,7 +79,9 @@ additional_target_plots <- function(output_location_from_02, output_location_05,
 
   target_by_release_binary <- p_release / p_binary
 
-  saveRDS(target_by_release_binary, file = paste(output_to_location_05, 'numeric-feature-distributions.png', sep = ''))
+  saveRDS(target_by_release_binary, file = paste(output_location_05, 'target_by_release_binary.RDS', sep = ''))
   ggsave(target_by_release_binary, file = paste(figure_storage_path, 'target_by_release_binary.png', sep = ''))
 
 }
+
+additional_target_plots(opt$output_location_from_02, opt$output_location_05, opt$figure_storage_path)

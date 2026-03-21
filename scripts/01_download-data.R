@@ -157,3 +157,5 @@ load_in <- function(input, output_to_location_01) {
 
   saveRDS(df, paste(output_to_location_01, 'games_sample.RDS', sep = ''))
 }
+
+load_in(opt$input_url, opt$output_to_location_01)

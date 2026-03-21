@@ -4,15 +4,17 @@ After that, it tabulates all the results and returns classification metrics and 
 
 File path should always be relative and end with a backslash.
 
-Usage: 07_train-test-model.R <output_location_from_02> <figure_storage_path>
+Usage: 07_train-test-model.R <output_location_from_02> <figure_storage_path> 
 " -> doc
 
 required_packages <- c(
   "tidyverse", "lubridate", "caret",
-  "scales", "patchwork", "purrr", "janitor", "pROC", "knitr"
+  "scales", "patchwork", "purrr", "janitor", "pROC", "knitr", "docopt"
 )
 
 invisible(lapply(required_packages, library, character.only = TRUE))
+
+opt <- docopt(doc)
 
 knitr::opts_chunk$set(
   echo = TRUE,
@@ -175,3 +177,5 @@ train_test_model <- function(output_location_from_02, figure_storage_path) {
   ggsave(roc_curve, file = paste(figure_storage_path, 'roc_curve.png', sep = ''))
   ggsave(confusion_matrix, file = paste(figure_storage_path, 'confusion_matrix.png', sep = ''))
 }
+
+train_test_model(opt$output_location_from_02, opt$figure_storage_path)
