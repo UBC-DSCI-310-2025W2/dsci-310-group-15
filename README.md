@@ -15,22 +15,36 @@ Our analysis determined that games that implemented family sharing, were single-
 ```text
 dsci-310-group-15/
 ├── data/
+│   └── raw 
 │   └── games_sample.json
+├── renv/
+├── reports/
+│   └── references.bib
+│   └── steam_full_analysis.qmd
+├── results/
+├── scripts/
+│   └── 01_download-data.R
+│   └── 02_data-preprocessing.R
+│   └── 03_class-imbalance-check.R
+│   └── 04_numeric-features-distribution.R
+│   └── 05_additional-target-summary-plots.R
+│   └── 06_categorical-feature-plots.R
+│   └── 07_train-test-model.R
 ├── src/
 │   └── steam_full_analysis.ipynb
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md
 ├── Dockerfile
 ├── LICENSE
+├── Makefile
 ├── README.md
 ├── renv.lock
-├── .github/
-│   └── workflows/
-│       └── publish_docker_image.yml
-└── renv/
+└── .github/
+    └── workflows/
+        └── publish_docker_image.yml
+
 ```
 
-## Dependencies
 
 ### Running the Data Analysis
 
@@ -81,6 +95,28 @@ R packages:
 * janitor (2.2.1)
 * pROC (1.19.0.1)
 * docopt (0.7.2)
+
+### Data Analysis Pipeline With GNU Make
+This project's `Makefile` automates the data analysis. To render the outputs, make sure that you have cloned the repository and navigated to the root directory:
+
+``` bash
+git clone https://github.com/UBC-DSCI-310-2025W2/dsci-310-group-15.git
+cd dsci-310-group-15
+```
+
+Then, update the environment according to the docker instructions or running `renv::restore()`.
+
+To generate the report (in html and pdf formats) and all the included figures, in the terminal, run:
+```bash
+make all 
+```
+This command generates an html and pdf of the report, found in `docs/`, as well as all the figures and tables included in the report, found in `results/`. 
+
+To clear all the outputs (figures; html and pdf reports), run:
+```bash
+make clean
+```
+
 
 ## License
 This project uses the **MIT License**. See `LICENSE` for more information.
