@@ -1,7 +1,13 @@
 "
-Preprocesses the downloaded sample file. Handles the nested data types, renames certain variables for better readability, and removes NAs.
+Preprocesses the downloaded sample file.
+Handles the nested data types, renames certain variables for better readability, and removes NAs.
 
-Usage: 02_data-preprocessing.R <output_location_from_01> <output_to_location_02> <processed_table_storage>
+Usage: scripts/02_data-preprocessing.R <output_location_from_01> <output_to_location_02> <processed_table_storage>
+
+Options:
+<output_location_from_01> location where the output from the previous script was stored.
+<output_to_location_02> location where the output for this script will be stored.
+<processed_table_storage> location where the .csv of the table will be stored.
 " -> doc
 
 library(docopt)

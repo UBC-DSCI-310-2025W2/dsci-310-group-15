@@ -3,7 +3,12 @@ Creates a grid of histograms to explore the distribution of the numeric features
 
 File path should always be relative and end with a backslash.
 
-Usage: 04_numeric-features-distributions.R <output_location_from_02> <output_to_location_04> <figure_storage_path>
+Usage: scripts/04_numeric-features-distributions.R <output_location_from_02> <output_to_location_04> <figure_storage_path>
+
+Options:
+<output_location_from_02> location of the output for the tidied data (script 2) was stored.
+<output_to_location_04> location where the output for this script will be stored.
+<figure_storage_path> location where the .png of the plot will be stored.
 " -> doc
 
 library(docopt)

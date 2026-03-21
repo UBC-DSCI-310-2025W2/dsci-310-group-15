@@ -1,7 +1,14 @@
 "
-Creates a bar chart for class imbalances. File path should always be relative and end with a backslash.
+Creates a bar chart for class imbalances.
 
-Usage: 03_class-imbalance-check.R <output_location_from_02> <output_to_location_03> <figure_storage_path>
+File path should always be relative and end with a backslash.
+
+Usage: scripts/03_class-imbalance-check.R <output_location_from_02> <output_to_location_03> <figure_storage_path>
+
+Options:
+<output_location_from_02> location of the output for the tidied data (script 2) was stored.
+<output_to_location_03> location where the output for this script will be stored.
+<figure_storage_path> location where the .png of the plot will be stored.
 " -> doc
 
 library(docopt)
@@ -56,7 +63,7 @@ distribution_check <- function(output_location_from_02, output_to_location_03, f
       fill = "Class"
     )
 
-  saveRDS(class_distribution_plot, paste(output_to_location_03, 'wrangled_table.RDS', sep = ''))
+  saveRDS(class_distribution_plot, paste(output_to_location_03, 'class_distribution_plot.RDS', sep = ''))
   ggsave(class_distribution_plot, file = paste(figure_storage_path, 'class_distribution_plot.png', sep = ''))
 }
 
