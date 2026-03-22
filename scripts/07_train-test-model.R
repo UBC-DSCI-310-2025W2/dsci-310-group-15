@@ -4,8 +4,7 @@ After that, it tabulates all the results and returns classification metrics and 
 
 File path should always be relative and end with a backslash.
 
-Usage: scripts/07_train-test-model.R <output_location_from_02> <figure_storage_path> <processed_table_storage>
-
+Usage: scripts/07_train-test-model.R <output_location_from_02> <figure_storage_path>
 Options:
 <output_location_from_02> location of the output for the tidied data (script 2) was stored.
 <figure_storage_path> location where the .png of the plot will be stored.
