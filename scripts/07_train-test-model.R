@@ -4,11 +4,10 @@ After that, it tabulates all the results and returns classification metrics and 
 
 File path should always be relative and end with a backslash.
 
-Usage: scripts/07_train-test-model.R <output_location_from_02> <figure_storage_path> <processed_table_storage>
+Usage: scripts/07_train-test-model.R <output_location_from_02> <figure_storage_path> 
 Options:
 <output_location_from_02> location of the output for the tidied data (script 2) was stored.
 <figure_storage_path> location where the .png of the plot will be stored.
-<processed_table_storage> location where the .csv of the tables will be stored.
 " -> doc
 
 required_packages <- c(
@@ -182,4 +181,4 @@ train_test_model <- function(output_location_from_02, figure_storage_path, proce
   ggsave(confusion_matrix, file = paste(figure_storage_path, 'confusion_matrix.png', sep = ''))
 }
 
-train_test_model(opt$output_location_from_02, opt$figure_storage_path, opt$processed_table_storage)
+train_test_model(opt$output_location_from_02, opt$figure_storage_path)
