@@ -5,10 +5,10 @@ After that, it tabulates all the results and returns classification metrics and 
 File path should always be relative and end with a backslash.
 
 Usage: scripts/07_train-test-model.R <output_location_from_02> <figure_storage_path> <processed_table_storage>
+
 Options:
 <output_location_from_02> location of the output for the tidied data (script 2) was stored.
 <figure_storage_path> location where the .png of the plot will be stored.
-<processed_table_storage> location where the .csv of the table will be stored.
 " -> doc
 
 required_packages <- c(
@@ -38,7 +38,7 @@ theme_set(
 )
 
 # ---- Train/test split and logistic model ----
-train_test_model <- function(output_location_from_02, figure_storage_path, processed_table_storage) {
+train_test_model <- function(output_location_from_02, figure_storage_path) {
   df_model <- readRDS(paste(output_location_from_02, 'wrangled_table.RDS', sep = ''))
 
   set.seed(123)
@@ -176,10 +176,10 @@ train_test_model <- function(output_location_from_02, figure_storage_path, proce
     slice_head(n = 12)
 
   #----Report visuals----
-  write.csv(feature_importances, paste(processed_table_storage, 'feature_importances_table.csv', sep = ''), row.names = FALSE)
-  write.csv(evaluation_metrics_table, paste(processed_table_storage, 'evaluation_metrics_table.csv', sep = ''), row.names = FALSE)
+  write.csv(feature_importances, paste(figure_storage_path, 'feature_importances_table.csv', sep = ''), row.names = FALSE)
+  write.csv(evaluation_metrics_table, paste(figure_storage_path, 'evaluation_metrics_table.csv', sep = ''), row.names = FALSE)
   ggsave(roc_curve, file = paste(figure_storage_path, 'roc_curve.png', sep = ''))
   ggsave(confusion_matrix, file = paste(figure_storage_path, 'confusion_matrix.png', sep = ''))
 }
 
-train_test_model(opt$output_location_from_02, opt$figure_storage_path, opt$processed_table_storage)
+train_test_model(opt$output_location_from_02, opt$figure_storage_path)
