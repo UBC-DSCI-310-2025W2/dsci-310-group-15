@@ -2,9 +2,16 @@
 This script takes in the URL for the data and returns the necessary data for the later preprocessing.
 Prints out the shape of the dataframe if successful.
 
-Please use a relative file path for the output_location and end it with a backslash.
+Dataset can be downloaded from: https://media.githubusercontent.com/media/VintageDon/steam-dataset-2025/main/data/01_raw/steam_2025_5k-dataset-games_20250831.json.gz
+(Be warned it's a large file.)
 
-Usage: 01_download_data.R <input_file> <output_to_location_01>
+Use a relative file path for the output_location and end it with a backslash.
+
+Usage: scripts/01_download_data.R <input_file> <output_to_location_01>
+
+Options:
+<input_file> the file that will be read.
+<output_to_location_01> the location that the file will be saved in.
 " -> doc
 
 # ---- Libraries ----
