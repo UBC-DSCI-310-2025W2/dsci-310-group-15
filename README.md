@@ -110,7 +110,7 @@ To generate the report (in html and pdf formats) and all the included figures, i
 ```bash
 make all 
 ```
-This command generates an html and pdf of the report, found in `docs/`, as well as all the figures and tables included in the report, found in `results/`. 
+This command generates an html and pdf of the report, found in `reports/`, as well as all the figures and tables included in the report, found in `results/`. 
 
 To clear all the outputs (figures; html and pdf reports), run:
 ```bash
