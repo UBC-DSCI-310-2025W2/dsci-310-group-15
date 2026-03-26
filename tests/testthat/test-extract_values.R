@@ -14,19 +14,25 @@ test_that(
 
 test_that(
     "extract_values returns the vector of the values when the input is a dataframe
-    with additional columns, and testing that when there is more than 
-    one occurence of a category name, that it only shows up once in the vector",
-    expect_equal(
-        extract_values(extract_values_exp_2_df_2col),
-        ev_exp_output_2
-    )
+    with additional columns, and that the function works 
+    with a different than default field_name",
+    {
+        expect_equal(
+            extract_values(extract_values_exp_2_df_2col),
+            ev_exp_output_2
+        )
+        expect_equal(
+            extract_values(extract_values_exp_2_df_2col, field_name = "game_name"),
+            ev_exp_output_2_game_name
+        )
+    }
 )
 
 test_that(
     "when the input is a list of lists, and the specified field is contained
     within the list, and each value only appears once",
     expect_equal(
-        extract_values(extract_values_exp_3_nested_list_some_missing),
+        extract_values(extract_values_exp_3_nested_list),
         ev_exp_output_3
     )
 )
@@ -35,7 +41,7 @@ test_that(
     "when the input is a list of lists, but some lists do not have the
     field name, or are empty, the vector only includes the values under the correct field names",
     expect_equal(
-        extract_values(extract_values_exp_4_nested_list),
+        extract_values(extract_values_exp_4_nested_list_some_missing),
         ev_exp_output_4
         )
 )
@@ -73,6 +79,6 @@ test_that(
     extract_values throws an error",
     expect_error(
         extract_values(extract_values_exp_1_df_1col,
-        field_name = s123)
+        field_name = 123)
     )
 )

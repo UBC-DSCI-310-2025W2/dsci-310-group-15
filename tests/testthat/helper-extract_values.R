@@ -17,9 +17,10 @@ extract_values_exp_2_df_2col <- data.frame(
 )
 
 ev_exp_output_2 <- c("Co-op", "Singleplayer", "Singleplayer")
+ev_exp_output_2_game_name <- c("Game1", "Game2", "Game3")
 
 #expected case 3, nested object, contains 'description', duplicate category
-extract_values_exp_3_nested_list_some_missing <- list(
+extract_values_exp_3_nested_list <- list(
     list(game_name = "Game1", description = "Singleplayer"),
     list(game_name = "Game2", description = "Co-op"),
     list(game_name = "Game3", description = "Singleplayer"),
@@ -30,7 +31,7 @@ extract_values_exp_3_nested_list_some_missing <- list(
 ev_exp_output_3 <- c("Singleplayer", "Co-op", "Singleplayer", "Multiplayer")
 
 #expected case 4, nested lists, some have description and some dont
-extract_values_exp_4_nested_list <- list(
+extract_values_exp_4_nested_list_some_missing <- list(
     list(game_name = "Game1", description = "Singleplayer"),
     list(game_name = "Game2", genre = "Competitive"),
     list(game_name = "Game3", description = "Co-op"),
