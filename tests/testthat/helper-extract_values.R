@@ -3,35 +3,35 @@
 
 #expected case 1, dataframe with one column of field name, with one value
 extract_values_exp_1_df_1col <- data.frame(
-    category = "Co-op"
+    description = "Co-op"
 )
 
 ev_exp_output_1 <- c("Co-op")
 
 #expected case 2, dataframe with two columns, one of field name, duplicated categories
 extract_values_exp_2_df_2col <- data.frame(
-    category = c("Co-op", "Singleplayer", "Singleplayer"),
+    description = c("Co-op", "Singleplayer", "Singleplayer"),
     game_name = c("Game1", "Game2", "Game3")
 )
 
 ev_exp_output_2 <- c("Co-op", "Singleplayer", "Singleplayer")
 
-#expected case 3, nested object, contains 'category', duplicate category
+#expected case 3, nested object, contains 'description', duplicate category
 extract_values_exp_3_nested_list_some_missing <- list(
-    list(game_name = "Game1", category = "Singleplayer"),
-    list(game_name = "Game2", category = "Co-op"),
-    list(game_name = "Game3", category = "Singleplayer"),
-    list(game_name = "Game4", category = "Multiplayer")
+    list(game_name = "Game1", description = "Singleplayer"),
+    list(game_name = "Game2", description = "Co-op"),
+    list(game_name = "Game3", description = "Singleplayer"),
+    list(game_name = "Game4", description = "Multiplayer")
 
 )
 
 ev_exp_output_3 <- c("Singleplayer", "Co-op", "Singleplayer", "Multiplayer")
 
-#expected case 4, nested lists, some have category and some dont
+#expected case 4, nested lists, some have description and some dont
 extract_values_exp_4_nested_list <- list(
-    list(game_name = "Game1", category = "Singleplayer"),
+    list(game_name = "Game1", description = "Singleplayer"),
     list(game_name = "Game2", genre = "Competitive"),
-    list(game_name = "Game3", category = "Co-op"),
+    list(game_name = "Game3", description = "Co-op"),
     list()
 
 )
