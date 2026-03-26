@@ -1,5 +1,7 @@
 # reproducible code to generate simple test data 
 # for the extract values function
+library(purrr)
+library(tibble)
 
 #expected case 1, dataframe with one column of field name, with one value
 extract_values_exp_1_df_1col <- data.frame(

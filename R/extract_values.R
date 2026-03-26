@@ -15,5 +15,26 @@
 #' @examples 
 #' 
 extract_values <- function(object, field_name = 'description' ) {
-    #Returns a vector with the values under a certain field name
+    if (is.null(object) || length(object) == 0) return(character(0))
+
+    if (is.data.frame(object) && field_name %in% names(object)) {
+      return(as.character(object[[field_name]]))
+    }
+    
+    if (is.data.frame(object) && (!field_name %in% names(object))) {
+      return(character(0))
+    }
+
+    if (is.list(object)) {
+      vals <- purrr::map_chr(object, function(x) {
+        if (is.list(x) && field_name %in% names(x)) {
+          as.character(x[[field_name]])
+        } else {
+          NA_character_
+        }
+      })
+      return(vals[!is.na(vals)])
+    }
+
+    character(0)
 }
