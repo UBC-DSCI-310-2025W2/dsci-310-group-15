@@ -1,6 +1,6 @@
 library(testthat)
 
-source("R/extract_values.R")
+source("../../R/extract_values.R")
 
 test_that(
     "extract_values returns a character vector of the values
