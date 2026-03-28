@@ -95,6 +95,10 @@ R packages:
 * janitor (2.2.1)
 * pROC (1.19.0.1)
 * docopt (0.7.2)
+* testthat (3.2.3)
+
+Core reusable R functions for data tasks are stored in `src/`, while `scripts/` contains CLI wrappers used by the Make pipeline.
+Unit tests are stored in `tests/testthat/`.
 
 ### Data Analysis Pipeline With GNU Make
 This project's `Makefile` automates the data analysis. To render the outputs, make sure that you have cloned the repository and navigated to the root directory:
@@ -115,6 +119,19 @@ This command generates an html and pdf of the report, found in `reports/`, as we
 To clear all the outputs (figures; html and pdf reports), run:
 ```bash
 make clean
+```
+
+### Running tests
+Unit tests are implemented with `testthat` in `tests/testthat/`.
+
+Run all tests:
+```bash
+make test
+```
+
+Or run directly:
+```bash
+Rscript tests/testthat.R
 ```
 
 
