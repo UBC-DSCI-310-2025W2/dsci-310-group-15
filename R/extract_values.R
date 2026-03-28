@@ -10,8 +10,6 @@
 #' @return A vector of the extracted values. Returns character(0) if
 #'   the input is null, empty, or does not contain the specified field name
 #' 
-#' @export 
-#' 
 #' @examples 
 #' extract_values(data.frame(description = c("Co-op", "Singleplayer")))
 #' extract_values(
