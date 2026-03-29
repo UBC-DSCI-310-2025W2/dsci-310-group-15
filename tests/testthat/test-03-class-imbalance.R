@@ -1,79 +1,75 @@
 library(testthat)
 
-test_that("summarize_class_distribution works for standard Free/Paid data", {
-  toy_df <- data.frame(
-    is_free = factor(c("Free", "Paid", "Free"), levels = c("Free", "Paid"))
-  )
+# ---- summarize_class_distribution: normal use ----
 
-  out <- summarize_class_distribution(toy_df)
+test_that("summarize_class_distribution returns count, proportion, and labels for a binary target", {
+  class_summary <- summarize_class_distribution(make_toy_class_df())
 
-  expect_true(is.data.frame(out))
-  expect_true(all(c("is_free", "n", "pct", "label") %in% names(out)))
-  expect_equal(sum(out$n), 3)
-  expect_equal(round(sum(out$pct), 6), 1)
+  expect_true(is.data.frame(class_summary))
+  expect_true(all(c("target_class", "n", "pct", "label") %in% names(class_summary)))
+  expect_equal(sum(class_summary$n), 3)
+  expect_equal(round(sum(class_summary$pct), 6), 1)
 })
 
-test_that("summarize_class_distribution supports a custom target column", {
-  toy_df <- data.frame(
-    target = factor(c("Yes", "No", "Yes"))
-  )
+test_that("summarize_class_distribution supports custom target column names", {
+  toy_df <- data.frame(outcome = factor(c("yes", "no", "yes")))
+  class_summary <- summarize_class_distribution(toy_df, target_col = "outcome")
 
-  out <- summarize_class_distribution(toy_df, target_col = "target")
-
-  expect_true(is.data.frame(out))
-  expect_true("is_free" %in% names(out))
-  expect_equal(sum(out$n), 3)
+  expect_true("target_class" %in% names(class_summary))
+  expect_equal(sum(class_summary$n), 3)
 })
 
-test_that("summarize_class_distribution handles single-class edge case", {
-  toy_df <- data.frame(
-    is_free = factor(rep("Free", 4), levels = c("Free", "Paid"))
-  )
+# ---- summarize_class_distribution: edge case ----
 
-  out <- summarize_class_distribution(toy_df)
+test_that("summarize_class_distribution handles a single observed class", {
+  one_class_df <- data.frame(is_free = factor(rep("Free", 4), levels = c("Free", "Paid")))
+  class_summary <- summarize_class_distribution(one_class_df)
 
-  expect_equal(nrow(out), 1)
-  expect_equal(out$pct[[1]], 1)
+  expect_equal(nrow(class_summary), 1)
+  expect_equal(class_summary$pct[[1]], 1)
 })
 
-test_that("summarize_class_distribution fails with missing target column", {
-  toy_df <- data.frame(other = c(1, 2, 3))
+# ---- summarize_class_distribution: wrong input ----
 
+test_that("summarize_class_distribution errors when target column is missing", {
   expect_error(
-    summarize_class_distribution(toy_df),
+    summarize_class_distribution(data.frame(other = c(1, 2, 3))),
     "missing required columns"
   )
 })
 
-test_that("build_class_distribution_plot returns a ggplot object", {
-  class_counts <- data.frame(
-    is_free = factor(c("Free", "Paid"), levels = c("Free", "Paid")),
-    n = c(10, 5),
-    pct = c(2 / 3, 1 / 3),
-    label = c("10 (66.7%)", "5 (33.3%)")
-  )
+# ---- build_class_distribution_plot: normal use ----
 
-  p <- build_class_distribution_plot(class_counts)
-  expect_s3_class(p, "ggplot")
+test_that("build_class_distribution_plot returns a ggplot object for valid class summary input", {
+  plot_obj <- build_class_distribution_plot(make_toy_class_counts())
+  expect_s3_class(plot_obj, "ggplot")
 })
 
-test_that("build_class_distribution_plot supports one-class edge case", {
-  class_counts <- data.frame(
-    is_free = factor("Free", levels = c("Free", "Paid")),
+test_that("build_class_distribution_plot accepts a custom color palette", {
+  custom_palette <- c("Free" = "#1D4ED8", "Paid" = "#0EA5E9")
+  plot_obj <- build_class_distribution_plot(make_toy_class_counts(), fill_palette = custom_palette)
+
+  expect_s3_class(plot_obj, "ggplot")
+})
+
+# ---- build_class_distribution_plot: edge case ----
+
+test_that("build_class_distribution_plot handles one-class summaries", {
+  one_class_counts <- data.frame(
+    target_class = factor("Free", levels = c("Free", "Paid")),
     n = 10,
     pct = 1,
     label = "10 (100%)"
   )
 
-  p <- build_class_distribution_plot(class_counts)
-  expect_s3_class(p, "ggplot")
+  plot_obj <- build_class_distribution_plot(one_class_counts)
+  expect_s3_class(plot_obj, "ggplot")
 })
 
-test_that("build_class_distribution_plot fails when required columns are missing", {
-  bad_counts <- data.frame(
-    is_free = factor(c("Free", "Paid")),
-    n = c(1, 1)
-  )
+# ---- build_class_distribution_plot: wrong input ----
+
+test_that("build_class_distribution_plot errors when required columns are missing", {
+  bad_counts <- data.frame(target_class = factor(c("Free", "Paid")), n = c(1, 1))
 
   expect_error(
     build_class_distribution_plot(bad_counts),
@@ -81,92 +77,92 @@ test_that("build_class_distribution_plot fails when required columns are missing
   )
 })
 
-test_that("save_class_distribution_outputs saves files in existing directories", {
-  class_counts <- data.frame(
-    is_free = factor(c("Free", "Paid"), levels = c("Free", "Paid")),
-    n = c(10, 5),
-    pct = c(2 / 3, 1 / 3),
-    label = c("10 (66.7%)", "5 (33.3%)")
-  )
-  p <- build_class_distribution_plot(class_counts)
+# ---- save_class_distribution_outputs: normal use ----
 
-  root <- tempfile("class_outputs_")
-  dir.create(root, recursive = TRUE)
+test_that("save_class_distribution_outputs writes RDS and PNG files to existing directories", {
+  plot_obj <- build_class_distribution_plot(make_toy_class_counts())
+  output_root <- tempfile("class_outputs_")
+  dir.create(output_root, recursive = TRUE)
 
-  out <- save_class_distribution_outputs(
-    class_distribution_plot = p,
-    output_to_location_03 = root,
-    figure_storage_path = root
+  saved <- save_class_distribution_outputs(
+    class_distribution_plot = plot_obj,
+    output_object_dir = output_root,
+    output_figure_dir = output_root
   )
 
-  expect_true(file.exists(out$rds_path))
-  expect_true(file.exists(out$png_path))
+  expect_true(file.exists(saved$rds_path))
+  expect_true(file.exists(saved$png_path))
 })
 
-test_that("save_class_distribution_outputs creates missing output directories", {
-  class_counts <- data.frame(
-    is_free = factor(c("Free", "Paid"), levels = c("Free", "Paid")),
-    n = c(10, 5),
-    pct = c(2 / 3, 1 / 3),
-    label = c("10 (66.7%)", "5 (33.3%)")
-  )
-  p <- build_class_distribution_plot(class_counts)
+# ---- save_class_distribution_outputs: edge case ----
 
-  root <- tempfile("class_outputs_missing_")
-  rds_dir <- file.path(root, "rds")
-  fig_dir <- file.path(root, "fig")
+test_that("save_class_distribution_outputs creates output directories when they do not exist", {
+  plot_obj <- build_class_distribution_plot(make_toy_class_counts())
+  output_root <- tempfile("class_outputs_missing_")
+  object_dir <- file.path(output_root, "rds")
+  figure_dir <- file.path(output_root, "fig")
 
-  out <- save_class_distribution_outputs(
-    class_distribution_plot = p,
-    output_to_location_03 = rds_dir,
-    figure_storage_path = fig_dir
+  saved <- save_class_distribution_outputs(
+    class_distribution_plot = plot_obj,
+    output_object_dir = object_dir,
+    output_figure_dir = figure_dir
   )
 
-  expect_true(file.exists(out$rds_path))
-  expect_true(file.exists(out$png_path))
+  expect_true(file.exists(saved$rds_path))
+  expect_true(file.exists(saved$png_path))
 })
 
-test_that("save_class_distribution_outputs fails with wrong plot input", {
-  root <- tempfile("class_outputs_bad_")
-  dir.create(root, recursive = TRUE)
+# ---- save_class_distribution_outputs: wrong input ----
+
+test_that("save_class_distribution_outputs rejects non-ggplot input (data.frame is invalid)", {
+  output_root <- tempfile("class_outputs_bad_")
+  dir.create(output_root, recursive = TRUE)
 
   expect_error(
     save_class_distribution_outputs(
       class_distribution_plot = data.frame(x = 1),
-      output_to_location_03 = root,
-      figure_storage_path = root
+      output_object_dir = output_root,
+      output_figure_dir = output_root
     ),
     "must be a ggplot object"
   )
 })
 
-test_that("run_class_imbalance_check runs end-to-end and returns objects", {
-  df_model <- data.frame(
-    is_free = factor(c("Free", "Paid", "Free"), levels = c("Free", "Paid"))
+# ---- run_class_imbalance_check: normal use ----
+
+test_that("run_class_imbalance_check returns summary, plot, and saved paths end-to-end", {
+  output_root <- tempfile("class_workflow_")
+  input_dir <- file.path(output_root, "input")
+  object_dir <- file.path(output_root, "output")
+  figure_dir <- file.path(output_root, "fig")
+  dir.create(input_dir, recursive = TRUE)
+  saveRDS(make_toy_class_df(), file.path(input_dir, "wrangled_table.RDS"))
+
+  result <- run_class_imbalance_check(
+    input_data_dir = input_dir,
+    output_object_dir = object_dir,
+    output_figure_dir = figure_dir
   )
 
-  root <- tempfile("class_workflow_")
-  input_dir <- file.path(root, "input")
-  out_dir <- file.path(root, "output")
-  fig_dir <- file.path(root, "fig")
-  dir.create(input_dir, recursive = TRUE)
-  saveRDS(df_model, file.path(input_dir, "wrangled_table.RDS"))
-
-  out <- run_class_imbalance_check(input_dir, out_dir, fig_dir)
-
-  expect_true(is.data.frame(out$class_counts))
-  expect_s3_class(out$class_distribution_plot, "ggplot")
-  expect_true(file.exists(out$saved_paths$rds_path))
-  expect_true(file.exists(out$saved_paths$png_path))
+  expect_true(is.data.frame(result$class_counts))
+  expect_s3_class(result$class_distribution_plot, "ggplot")
+  expect_true(file.exists(result$saved_paths$rds_path))
+  expect_true(file.exists(result$saved_paths$png_path))
 })
 
-test_that("run_class_imbalance_check fails when wrangled_table.RDS is missing", {
-  root <- tempfile("class_workflow_missing_")
-  input_dir <- file.path(root, "input")
+# ---- run_class_imbalance_check: wrong input ----
+
+test_that("run_class_imbalance_check errors when input RDS file is missing", {
+  output_root <- tempfile("class_workflow_missing_")
+  input_dir <- file.path(output_root, "input")
   dir.create(input_dir, recursive = TRUE)
 
   expect_error(
-    run_class_imbalance_check(input_dir, file.path(root, "output"), file.path(root, "fig")),
+    run_class_imbalance_check(
+      input_data_dir = input_dir,
+      output_object_dir = file.path(output_root, "output"),
+      output_figure_dir = file.path(output_root, "fig")
+    ),
     "Input file not found"
   )
 })

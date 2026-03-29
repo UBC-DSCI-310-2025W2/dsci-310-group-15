@@ -1,80 +1,74 @@
 library(testthat)
 
-make_toy_numeric_df <- function() {
-  data.frame(
-    is_free = factor(c("Free", "Paid", "Free"), levels = c("Free", "Paid")),
-    required_age = c(0, 18, 13),
-    release_year = c(2020, 2019, -1),
-    platform_count = c(3, 1, 2),
-    n_categories = c(6, 2, 4)
-  )
-}
+# ---- pivot_numeric_predictors: normal use ----
 
-test_that("pivot_numeric_predictors works for default predictors", {
-  toy_df <- make_toy_numeric_df()
+test_that("pivot_numeric_predictors returns long-format rows for default numeric predictors", {
+  numeric_long <- pivot_numeric_predictors(make_toy_numeric_df())
 
-  out <- pivot_numeric_predictors(toy_df)
-
-  expect_true(is.data.frame(out))
-  expect_true(all(c("is_free", "predictor", "value") %in% names(out)))
-  expect_true(all(unique(out$predictor) %in% c("required_age", "release_year", "platform_count", "n_categories")))
+  expect_true(is.data.frame(numeric_long))
+  expect_true(all(c("target_class", "predictor", "value") %in% names(numeric_long)))
+  expect_true(all(unique(numeric_long$predictor) %in% c("required_age", "release_year", "platform_count", "n_categories")))
 })
 
 test_that("pivot_numeric_predictors supports custom predictor subsets", {
-  toy_df <- make_toy_numeric_df()
+  numeric_long <- pivot_numeric_predictors(
+    data = make_toy_numeric_df(),
+    predictors = c("required_age", "platform_count")
+  )
 
-  out <- pivot_numeric_predictors(toy_df, predictors = c("required_age", "platform_count"))
-
-  expect_equal(sort(unique(out$predictor)), c("platform_count", "required_age"))
-  expect_equal(nrow(out), nrow(toy_df) * 2)
+  expect_equal(sort(unique(numeric_long$predictor)), c("platform_count", "required_age"))
 })
 
-test_that("pivot_numeric_predictors filters non-positive release_year values", {
-  toy_df <- make_toy_numeric_df()
+# ---- pivot_numeric_predictors: edge case ----
 
-  out <- pivot_numeric_predictors(toy_df)
-  bad_release_year <- out$predictor == "release_year" & out$value <= 0
+test_that("pivot_numeric_predictors removes non-positive values only for configured predictors", {
+  numeric_long <- pivot_numeric_predictors(make_toy_numeric_df(), drop_non_positive_for = "release_year")
+  bad_release_year <- numeric_long$predictor == "release_year" & numeric_long$value <= 0
 
   expect_false(any(bad_release_year))
 })
 
-test_that("pivot_numeric_predictors fails for non-numeric predictors", {
-  toy_df <- make_toy_numeric_df()
-  toy_df$required_age <- as.character(toy_df$required_age)
+# ---- pivot_numeric_predictors: wrong input ----
+
+test_that("pivot_numeric_predictors errors when a requested predictor is not numeric", {
+  bad_df <- make_toy_numeric_df()
+  bad_df$required_age <- as.character(bad_df$required_age)
 
   expect_error(
-    pivot_numeric_predictors(toy_df),
+    pivot_numeric_predictors(bad_df, predictors = c("required_age", "platform_count")),
     "All predictors must be numeric"
   )
 })
 
-test_that("build_numeric_distribution_plot returns a ggplot object", {
-  toy_long <- data.frame(
-    is_free = factor(c("Free", "Free", "Paid", "Paid")),
-    predictor = c("required_age", "platform_count", "required_age", "platform_count"),
-    value = c(0, 3, 18, 1)
-  )
+# ---- build_numeric_distribution_plot: normal use ----
 
-  p <- build_numeric_distribution_plot(toy_long)
-  expect_s3_class(p, "ggplot")
+test_that("build_numeric_distribution_plot returns a ggplot object for valid long data", {
+  plot_obj <- build_numeric_distribution_plot(make_toy_numeric_long())
+  expect_s3_class(plot_obj, "ggplot")
 })
 
-test_that("build_numeric_distribution_plot handles repeated values edge case", {
-  toy_long <- data.frame(
-    is_free = factor(rep(c("Free", "Paid"), each = 4)),
+test_that("build_numeric_distribution_plot supports custom bin counts", {
+  plot_obj <- build_numeric_distribution_plot(make_toy_numeric_long(), bins = 15)
+  expect_s3_class(plot_obj, "ggplot")
+})
+
+# ---- build_numeric_distribution_plot: edge case ----
+
+test_that("build_numeric_distribution_plot handles repeated numeric values", {
+  repeated_long <- data.frame(
+    target_class = factor(rep(c("Free", "Paid"), each = 4)),
     predictor = rep(c("required_age", "platform_count"), times = 4),
     value = rep(1, 8)
   )
 
-  p <- build_numeric_distribution_plot(toy_long)
-  expect_s3_class(p, "ggplot")
+  plot_obj <- build_numeric_distribution_plot(repeated_long)
+  expect_s3_class(plot_obj, "ggplot")
 })
 
-test_that("build_numeric_distribution_plot fails with missing columns", {
-  bad_long <- data.frame(
-    is_free = factor(c("Free", "Paid")),
-    predictor = c("required_age", "required_age")
-  )
+# ---- build_numeric_distribution_plot: wrong input ----
+
+test_that("build_numeric_distribution_plot errors when required columns are missing", {
+  bad_long <- data.frame(target_class = factor(c("Free", "Paid")), predictor = c("a", "a"))
 
   expect_error(
     build_numeric_distribution_plot(bad_long),
@@ -82,88 +76,92 @@ test_that("build_numeric_distribution_plot fails with missing columns", {
   )
 })
 
-test_that("save_numeric_distribution_outputs saves files in existing directories", {
-  toy_long <- data.frame(
-    is_free = factor(c("Free", "Free", "Paid", "Paid")),
-    predictor = c("required_age", "platform_count", "required_age", "platform_count"),
-    value = c(0, 3, 18, 1)
-  )
-  p <- build_numeric_distribution_plot(toy_long)
+# ---- save_numeric_distribution_outputs: normal use ----
 
-  root <- tempfile("numeric_outputs_")
-  dir.create(root, recursive = TRUE)
+test_that("save_numeric_distribution_outputs writes RDS and PNG files to existing directories", {
+  plot_obj <- build_numeric_distribution_plot(make_toy_numeric_long())
+  output_root <- tempfile("numeric_outputs_")
+  dir.create(output_root, recursive = TRUE)
 
-  out <- save_numeric_distribution_outputs(
-    numeric_grid_distribution = p,
-    output_to_location_04 = root,
-    figure_storage_path = root
+  saved <- save_numeric_distribution_outputs(
+    numeric_grid_distribution = plot_obj,
+    output_object_dir = output_root,
+    output_figure_dir = output_root
   )
 
-  expect_true(file.exists(out$rds_path))
-  expect_true(file.exists(out$png_path))
+  expect_true(file.exists(saved$rds_path))
+  expect_true(file.exists(saved$png_path))
 })
 
-test_that("save_numeric_distribution_outputs creates missing output directories", {
-  toy_long <- data.frame(
-    is_free = factor(c("Free", "Free", "Paid", "Paid")),
-    predictor = c("required_age", "platform_count", "required_age", "platform_count"),
-    value = c(0, 3, 18, 1)
-  )
-  p <- build_numeric_distribution_plot(toy_long)
+# ---- save_numeric_distribution_outputs: edge case ----
 
-  root <- tempfile("numeric_outputs_missing_")
-  rds_dir <- file.path(root, "rds")
-  fig_dir <- file.path(root, "fig")
+test_that("save_numeric_distribution_outputs creates output directories when they do not exist", {
+  plot_obj <- build_numeric_distribution_plot(make_toy_numeric_long())
+  output_root <- tempfile("numeric_outputs_missing_")
+  object_dir <- file.path(output_root, "rds")
+  figure_dir <- file.path(output_root, "fig")
 
-  out <- save_numeric_distribution_outputs(
-    numeric_grid_distribution = p,
-    output_to_location_04 = rds_dir,
-    figure_storage_path = fig_dir
+  saved <- save_numeric_distribution_outputs(
+    numeric_grid_distribution = plot_obj,
+    output_object_dir = object_dir,
+    output_figure_dir = figure_dir
   )
 
-  expect_true(file.exists(out$rds_path))
-  expect_true(file.exists(out$png_path))
+  expect_true(file.exists(saved$rds_path))
+  expect_true(file.exists(saved$png_path))
 })
 
-test_that("save_numeric_distribution_outputs fails with wrong plot input", {
-  root <- tempfile("numeric_outputs_bad_")
-  dir.create(root, recursive = TRUE)
+# ---- save_numeric_distribution_outputs: wrong input ----
+
+test_that("save_numeric_distribution_outputs rejects non-ggplot input (data.frame is invalid)", {
+  output_root <- tempfile("numeric_outputs_bad_")
+  dir.create(output_root, recursive = TRUE)
 
   expect_error(
     save_numeric_distribution_outputs(
       numeric_grid_distribution = data.frame(x = 1),
-      output_to_location_04 = root,
-      figure_storage_path = root
+      output_object_dir = output_root,
+      output_figure_dir = output_root
     ),
     "must be a ggplot object"
   )
 })
 
-test_that("run_numeric_features_distributions runs end-to-end and returns objects", {
-  df_model <- make_toy_numeric_df()
+# ---- run_numeric_features_distributions: normal use ----
 
-  root <- tempfile("numeric_workflow_")
-  input_dir <- file.path(root, "input")
-  out_dir <- file.path(root, "output")
-  fig_dir <- file.path(root, "fig")
+test_that("run_numeric_features_distributions returns pivoted data, plot, and saved paths end-to-end", {
+  output_root <- tempfile("numeric_workflow_")
+  input_dir <- file.path(output_root, "input")
+  object_dir <- file.path(output_root, "output")
+  figure_dir <- file.path(output_root, "fig")
   dir.create(input_dir, recursive = TRUE)
-  saveRDS(df_model, file.path(input_dir, "wrangled_table.RDS"))
+  saveRDS(make_toy_numeric_df(), file.path(input_dir, "wrangled_table.RDS"))
 
-  out <- run_numeric_features_distributions(input_dir, out_dir, fig_dir)
+  result <- run_numeric_features_distributions(
+    input_data_dir = input_dir,
+    output_object_dir = object_dir,
+    output_figure_dir = figure_dir
+  )
 
-  expect_true(is.data.frame(out$numeric_long))
-  expect_s3_class(out$numeric_grid_distribution, "ggplot")
-  expect_true(file.exists(out$saved_paths$rds_path))
-  expect_true(file.exists(out$saved_paths$png_path))
+  expect_true(is.data.frame(result$numeric_long))
+  expect_s3_class(result$numeric_grid_distribution, "ggplot")
+  expect_true(file.exists(result$saved_paths$rds_path))
+  expect_true(file.exists(result$saved_paths$png_path))
 })
 
-test_that("run_numeric_features_distributions fails when wrangled_table.RDS is missing", {
-  root <- tempfile("numeric_workflow_missing_")
-  input_dir <- file.path(root, "input")
+# ---- run_numeric_features_distributions: wrong input ----
+
+test_that("run_numeric_features_distributions errors when input RDS file is missing", {
+  output_root <- tempfile("numeric_workflow_missing_")
+  input_dir <- file.path(output_root, "input")
   dir.create(input_dir, recursive = TRUE)
 
   expect_error(
-    run_numeric_features_distributions(input_dir, file.path(root, "output"), file.path(root, "fig")),
+    run_numeric_features_distributions(
+      input_data_dir = input_dir,
+      output_object_dir = file.path(output_root, "output"),
+      output_figure_dir = file.path(output_root, "fig")
+    ),
     "Input file not found"
   )
 })

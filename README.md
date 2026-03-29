@@ -14,35 +14,41 @@ Our analysis determined that games that implemented family sharing, were single-
 ## Project Structure
 ```text
 dsci-310-group-15/
-├── data/
-│   └── raw 
-│   └── games_sample.json
-├── renv/
-├── reports/
-│   └── references.bib
-│   └── steam_full_analysis.qmd
-├── results/
-├── scripts/
-│   └── 01_download-data.R
-│   └── 02_data-preprocessing.R
-│   └── 03_class-imbalance-check.R
-│   └── 04_numeric-features-distribution.R
-│   └── 05_additional-target-summary-plots.R
-│   └── 06_categorical-feature-plots.R
-│   └── 07_train-test-model.R
-├── src/
-│   └── steam_full_analysis.ipynb
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── Dockerfile
-├── LICENSE
-├── Makefile
-├── README.md
-├── renv.lock
-└── .github/
-    └── workflows/
-        └── publish_docker_image.yml
-
+|-- .github/
+|   `-- workflows/
+|       `-- publish_docker_image.yml
+|-- R/
+|   |-- io_validation_utils.R
+|   |-- plot_class_imbalance.R
+|   `-- plot_numeric_distributions.R
+|-- data/
+|   |-- raw/
+|   `-- games_sample.json
+|-- renv/
+|-- reports/
+|   |-- references.bib
+|   `-- steam_full_analysis.qmd
+|-- results/
+|-- scripts/
+|   |-- 01_download-data.R
+|   |-- 02_data-preprocessing.R
+|   |-- 03_class-imbalance-check.R
+|   |-- 04_numeric-features-distribution.R
+|   |-- 05_additional-target-summary-plots.R
+|   |-- 06_categorical-feature-plots.R
+|   `-- 07_train-test-model.R
+|-- src/
+|   |-- steam_eda.Rmd
+|   `-- steam_full_analysis.ipynb
+|-- tests/
+|   `-- testthat/
+|-- CODE_OF_CONDUCT.md
+|-- CONTRIBUTING.md
+|-- Dockerfile
+|-- LICENSE
+|-- Makefile
+|-- README.md
+`-- renv.lock
 ```
 
 
@@ -97,7 +103,7 @@ R packages:
 * docopt (0.7.2)
 * testthat (3.2.3)
 
-Core reusable R functions for data tasks are stored in `src/`, while `scripts/` contains CLI wrappers used by the Make pipeline.
+Core reusable R functions for data tasks are stored in `R/`, while `scripts/` contains CLI wrappers used by the Make pipeline.
 Unit tests are stored in `tests/testthat/`.
 
 ### Data Analysis Pipeline With GNU Make

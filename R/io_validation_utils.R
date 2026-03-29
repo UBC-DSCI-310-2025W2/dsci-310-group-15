@@ -51,24 +51,25 @@ ensure_directory_exists <- function(directory, arg_name) {
   directory
 }
 
-#' Read the wrangled modeling table from disk
+#' Read a serialized modeling table from disk
 #'
-#' @param output_location_from_02 Directory containing `wrangled_table.RDS`.
+#' @param input_data_dir Directory containing the input RDS data file.
+#' @param input_filename Input RDS filename to load from `input_data_dir`.
 #'
-#' @return A data frame loaded from `wrangled_table.RDS`.
+#' @return A data frame loaded from disk.
 #' @examples
 #' \dontrun{
-#' load_wrangled_table("data/")
+#' load_wrangled_table("data/", "wrangled_table.RDS")
 #' }
-#'
-load_wrangled_table <- function(output_location_from_02) {
-  assert_single_string(output_location_from_02, "output_location_from_02")
+load_wrangled_table <- function(input_data_dir, input_filename = "wrangled_table.RDS") {
+  assert_single_string(input_data_dir, "input_data_dir")
+  assert_single_string(input_filename, "input_filename")
 
-  input_path <- build_file_path(output_location_from_02, "wrangled_table.RDS")
+  input_path <- build_file_path(input_data_dir, input_filename)
   if (!file.exists(input_path)) {
     stop(
       sprintf(
-        "Input file not found: %s. Run script 02 first to create `wrangled_table.RDS`.",
+        "Input file not found: %s.",
         input_path
       ),
       call. = FALSE
