@@ -36,7 +36,7 @@ RUN R -q -e "remotes::install_version('tidyverse', version = '2.0.0', repos = 'h
     R -q -e "remotes::install_version('pROC', version = '1.19.0.1', repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('pROC', version = '1.19.0.1', repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('IRkernel', version = '1.3.2', repos = 'https://cloud.r-project.org')" && \
-    R -q -e "remotes::install_version('checkmate', version = '2.3.4', repos = 'https://cloud.r-project.org')"
+    R -q -e "remotes::install_version('testthat', version = '3.3.2', repos = 'https://cloud.r-project.org')" 
 
 WORKDIR /home/rstudio/dsci-310-group-15
 
