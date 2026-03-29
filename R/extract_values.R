@@ -1,16 +1,13 @@
-#' Extract values from a certain named field 
+#' Extract a column as a vector from a data frame 
 #' 
-#' Returns a vector with the values under a certain field name
+#' Retireves the values of a specified column from a data frame and reutrns it as a vector.
 #' 
-#' @param object can be either a data frame, 
-#'   a list of sub lists, NULL, or a zero-length object
+#' @param object a data frame containing the data
 #' @param field_name the field name to extract values from, 
 #'   the default is 'description'. Must be a string.
 #' 
 #' @return A vector of the extracted values. Returns character(0) if
 #'   the input is null, empty, or does not contain the specified field name
-#' 
-#' @export 
 #' 
 #' @examples 
 #' extract_values(data.frame(description = c("Co-op", "Singleplayer")))
