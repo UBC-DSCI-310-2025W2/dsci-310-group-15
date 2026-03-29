@@ -53,33 +53,9 @@ categorical_plotter <- function(output_location_from_02, output_to_location_06, 
     left_join(df_model |> count(is_free, name = "class_total"), by = "is_free") |>
     mutate(rate = n / class_total)
 
-  cat_gap <- cat_prev |>
-    select(is_free, category, rate) |>
-    pivot_wider(names_from = is_free, values_from = rate, values_fill = 0) |>
-    mutate(diff_free_minus_paid = Free - Paid) |>
-    arrange(desc(abs(diff_free_minus_paid)))
+  cat_gap <- compute_category_gap(df_model)
 
-  categorical_feat_gap <- ggplot(
-    cat_gap |> slice_head(n = 12),
-    aes(
-      x = reorder(category, diff_free_minus_paid),
-      y = diff_free_minus_paid,
-      fill = diff_free_minus_paid > 0
-    )
-  ) +
-    geom_col(width = 0.7) +
-    coord_flip() +
-    scale_fill_manual(
-      values = c("TRUE" = "#0EA5E9", "FALSE" = "#2563EB"),
-      labels = c("FALSE" = "Higher for Paid", "TRUE" = "Higher for Free"),
-      name = "Direction"
-    ) +
-    scale_y_continuous(labels = scales::percent) +
-    labs(
-      title = "Largest Class Differences in Top Category Prevalence",
-      x = "Category",
-      y = "Free Rate - Paid Rate"
-    )
+  categorical_feat_gap <- plot_category_gap(cat_gap, top_n = 12)
 
   saveRDS(categorical_feat_gap, file = paste(output_to_location_06, 'categorical_feat_gap.RDS', sep = ''))
   ggsave(categorical_feat_gap, file = paste(figure_storage_path, 'categorical_feat_gap.png', sep = ''))
