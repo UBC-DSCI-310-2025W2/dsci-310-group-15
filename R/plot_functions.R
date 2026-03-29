@@ -60,7 +60,7 @@ plot_counts_over_time_by_group <- function(df,
     aes(
       x     = .data[[year_col]],
       y     = n,
-      color = .data[[group_col]]
+      colour = .data[[group_col]]
     )
   ) +
     geom_line(linewidth = 1) +
@@ -68,15 +68,14 @@ plot_counts_over_time_by_group <- function(df,
       title = title,
       x     = x_label,
       y     = y_label,
-      color = group_col
+      colour = group_col
     ) +
     theme_minimal(base_size = 13) +
     theme(plot.title = element_text(face = "bold"))
 
   if (!is.null(colours)) {
-    p <- p + scale_color_manual(values = colours)
-  }
-
+  p <- p + scale_colour_manual(values = unname(colours))
+}
   p
 }
 
@@ -124,7 +123,7 @@ plot_binary_rates_by_group <- function(df,
                                        colours = NULL,
                                        x_label = "Feature",
                                        y_label = "Proportion",
-                                       title   = "") {
+                                       title = "") {
   stopifnot(
     is.data.frame(df),
     is.character(group_col), length(group_col) == 1, group_col %in% names(df),
@@ -132,7 +131,7 @@ plot_binary_rates_by_group <- function(df,
     all(flag_cols %in% names(df)),
     is.character(x_label), length(x_label) == 1,
     is.character(y_label), length(y_label) == 1,
-    is.character(title),   length(title)   == 1
+    is.character(title), length(title) == 1
   )
 
   rates <- df |>
@@ -142,25 +141,27 @@ plot_binary_rates_by_group <- function(df,
       .groups = "drop"
     ) |>
     pivot_longer(
-      cols      = all_of(flag_cols),
-      names_to  = "feature",
+      cols = all_of(flag_cols),
+      names_to = "feature",
       values_to = "rate"
     )
 
-  p <- ggplot(rates, aes(x = feature, y = rate, fill = .data[[group_col]])) +
-    geom_col(position = position_dodge(width = 0.7), width = 0.65) +
-    geom_text(
-      aes(label = percent(rate, accuracy = 0.1)),
-      position = position_dodge(width = 0.7),
-      vjust    = -0.35,
-      size     = 3.8
-    ) +
-    scale_y_continuous(labels = percent, limits = c(0, 1.05)) +
+  group_sym <- rlang::sym(group_col)
+
+  p <- ggplot(
+    rates,
+    aes(
+      x = !!group_sym,
+      y = rate,
+      fill = feature
+    )
+  ) +
+    geom_col(position = position_dodge(width = 0.9), width = 0.8) +
     labs(
       title = title,
-      x     = x_label,
-      y     = y_label,
-      fill  = group_col
+      x = x_label,
+      y = y_label,
+      fill = "Feature"
     ) +
     theme_minimal(base_size = 13) +
     theme(plot.title = element_text(face = "bold"))
@@ -171,7 +172,6 @@ plot_binary_rates_by_group <- function(df,
 
   p
 }
-
 
 # ---- 3. compute_indicator_gap ------------------------------------------------
 
@@ -245,27 +245,33 @@ compute_indicator_gap <- function(df,
   }
 
   group_totals <- df |>
-    count(.data[[group_col]], name = "group_total")
+  count(.data[[group_col]], name = "group_total")
 
-  df |>
-    select(all_of(c(group_col, ind_cols))) |>
-    pivot_longer(
-      cols      = all_of(ind_cols),
-      names_to  = "indicator",
-      values_to = "present"
-    ) |>
-    filter(as.logical(present)) |>
-    count(.data[[group_col]], indicator) |>
-    left_join(group_totals, by = group_col) |>
-    mutate(rate = n / group_total) |>
-    select(all_of(group_col), indicator, rate) |>
-    pivot_wider(
-      names_from  = all_of(group_col),
-      values_from = rate,
-      values_fill = 0
-    ) |>
-    mutate(diff = .data[[level_a]] - .data[[level_b]]) |>
-    arrange(desc(abs(diff)))
+wide <- df |>
+  select(all_of(c(group_col, ind_cols))) |>
+  pivot_longer(
+    cols      = all_of(ind_cols),
+    names_to  = "indicator",
+    values_to = "present"
+  ) |>
+  filter(as.logical(present)) |>
+  count(.data[[group_col]], indicator) |>
+  left_join(group_totals, by = group_col) |>
+  mutate(rate = n / group_total) |>
+  select(all_of(group_col), indicator, rate) |>
+  pivot_wider(
+    names_from  = all_of(group_col),
+    values_from = rate,
+    values_fill = 0
+  )
+
+# guarantee both columns exist
+if (!(level_a %in% names(wide))) wide[[level_a]] <- 0
+if (!(level_b %in% names(wide))) wide[[level_b]] <- 0
+
+wide |>
+  mutate(diff = .data[[level_a]] - .data[[level_b]]) |>
+  arrange(desc(abs(diff)))
 }
 
 

@@ -1,49 +1,70 @@
-#' Extract a column as a vector from a data frame 
-#' 
-#' Retireves the values of a specified column from a data frame and reutrns it as a vector.
-#' 
-#' @param object a data frame containing the data
-#' @param field_name the field name to extract values from, 
-#'   the default is 'description'. Must be a string.
-#' 
-#' @return A vector of the extracted values. Returns character(0) if
-#'   the input is null, empty, or does not contain the specified field name
-#' 
-#' @examples 
-#' extract_values(data.frame(description = c("Co-op", "Singleplayer")))
-#' extract_values(
-#'  list(
-#'      list(category = "Co-op", release_year = 2025),
-#'      list(category = "Singleplayer", release_year = 2023)
-#'      ),
-#'  field_name = 'category'
-#' )
-#' 
-extract_values <- function(object, field_name = 'description' ) {
-    if (!is.character(field_name)) {
-        stop("field_name must be a string.")
-    }
+#' Extract values under a specified field name
+#'
+#' Returns a character vector of values stored under a given field name
+#' from either:
+#'  • a dataframe column
+#'  • a list of lists
+#'
+#' @param data A dataframe OR list of lists
+#' @param field_name A string specifying the field to extract.
+#'        Default = "categories"
+#'
+#' @return A character vector of extracted values.
+#'         Returns character(0) for invalid inputs or if field not found.
+#'
+#' @examples
+#' df <- data.frame(categories = c("Action","RPG"))
+#' extract_values(df)
+#'
+#' lst <- list(list(categories="Action"), list(categories="RPG"))
+#' extract_values(lst)
 
-    if (is.null(object) || length(object) == 0) return(character(0))
+extract_values <- function(data, field_name = "categories") {
 
-    if (is.data.frame(object) && field_name %in% names(object)) {
-      return(as.character(object[[field_name]]))
-    }
-    
-    if (is.data.frame(object) && (!field_name %in% names(object))) {
+  # error if field_name not string
+  if (!is.character(field_name) || length(field_name) != 1) {
+    stop("field_name must be a string")
+  }
+
+  # return empty for NULL or empty input
+  if (is.null(data) || length(data) == 0) {
+    return(character(0))
+  }
+
+  # ---------------------------
+  # CASE 1 — DATA FRAME INPUT
+  # ---------------------------
+  if (is.data.frame(data)) {
+
+    # field must exist as column
+    if (!(field_name %in% colnames(data))) {
       return(character(0))
     }
 
-    if (is.list(object)) {
-      vals <- purrr::map_chr(object, function(x) {
-        if (is.list(x) && field_name %in% names(x)) {
-          as.character(x[[field_name]])
-        } else {
-          NA_character_
-        }
-      })
-      return(vals[!is.na(vals)])
-    }
+    # extract + coerce to character
+    return(as.character(data[[field_name]]))
+  }
 
-    character(0)
+  # ---------------------------
+  # CASE 2 — LIST OF LISTS INPUT
+  # ---------------------------
+  if (is.list(data)) {
+
+    values <- sapply(data, function(x) {
+      if (is.list(x) && field_name %in% names(x)) {
+        return(as.character(x[[field_name]]))
+      }
+      return(NULL)
+    })
+
+    # remove NULLs
+    values <- values[!sapply(values, is.null)]
+
+    return(as.character(values))
+  }
+
+  # ---------------------------
+  # OTHERWISE INVALID INPUT
+  # ---------------------------
+  return(character(0))
 }
