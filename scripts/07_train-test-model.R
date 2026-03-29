@@ -20,8 +20,8 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 opt <- docopt(doc)
 
 #Source for custom functions.
-source("R/test_data.R")
-source("R/train_data.R")
+source("R/test_split_data.R")
+source("R/train_split_data.R")
 
 knitr::opts_chunk$set(
   echo = TRUE,
@@ -53,10 +53,10 @@ train_test_model <- function(output_location_from_02, figure_storage_path) {
     grep("^cat_", names(df_model), value = TRUE)
   )
 
-  train_model <- train_data(df_model, df_model$is_free, 0.8) |>
+  train_model <- train_split_data(df_model, df_model$is_free, 0.8) |>
     select(is_free, all_of(predictor_names))
 
-  test_model <- test_data(df_model, df_model$is_free, 0.8) |>
+  test_model <- test_split_data(df_model, df_model$is_free, 0.8) |>
     select(is_free, all_of(predictor_names))
 
   baseline_class <- train_model |>
