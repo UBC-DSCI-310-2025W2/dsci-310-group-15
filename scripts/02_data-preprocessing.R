@@ -18,32 +18,35 @@ required_packages <- c(
 
 invisible(lapply(required_packages, library, character.only = TRUE))
 
+source("R/extract_values.R")
+
 opt <- docopt(doc)
 
 preprocess <- function(output_location_from_01, output_to_location_02, processed_table_storage){
   df <- readRDS(paste(output_location_from_01, 'games_sample.RDS', sep = ''))
 
   # ---- Cleaning and feature engineering ----
-  extract_categories <- function(cat_obj) {
-    if (is.null(cat_obj) || length(cat_obj) == 0) return(character(0))
 
-    if (is.data.frame(cat_obj) && "description" %in% names(cat_obj)) {
-      return(as.character(cat_obj$description))
-    }
+  # extract_categories <- function(cat_obj) {
+  #   if (is.null(cat_obj) || length(cat_obj) == 0) return(character(0))
 
-    if (is.list(cat_obj)) {
-      vals <- purrr::map_chr(cat_obj, function(x) {
-        if (is.list(x) && "description" %in% names(x)) {
-          as.character(x[["description"]])
-        } else {
-          NA_character_
-        }
-      })
-      return(vals[!is.na(vals)])
-    }
+  #   if (is.data.frame(cat_obj) && "description" %in% names(cat_obj)) {
+  #     return(as.character(cat_obj$description))
+  #   }
 
-    character(0)
-  }
+  #   if (is.list(cat_obj)) {
+  #     vals <- purrr::map_chr(cat_obj, function(x) {
+  #       if (is.list(x) && "description" %in% names(x)) {
+  #         as.character(x[["description"]])
+  #       } else {
+  #         NA_character_
+  #       }
+  #     })
+  #     return(vals[!is.na(vals)])
+  #   }
+
+  #   character(0)
+  # }
 
   flat_data <- df |>
     rename(
@@ -76,7 +79,7 @@ preprocess <- function(output_location_from_01, output_to_location_02, processed
         as.integer(replace_na(linux_support, FALSE)),
       has_dlc = purrr::map_lgl(dlc, ~ length(.x) > 0),
       has_demo = purrr::map_lgl(demos, ~ length(.x) > 0),
-      category_list = purrr::map(categories, extract_categories),
+      category_list = purrr::map(categories, extract_values),
       n_categories = purrr::map_int(category_list, length),
       developer_name = purrr::map_chr(
         developers,

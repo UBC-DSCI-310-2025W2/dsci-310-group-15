@@ -95,6 +95,7 @@ R packages:
 * janitor (2.2.1)
 * pROC (1.19.0.1)
 * docopt (0.7.2)
+* testthat (3.3.2)
 
 ### Data Analysis Pipeline With GNU Make
 This project's `Makefile` automates the data analysis. To render the outputs, make sure that you have cloned the repository and navigated to the root directory:
