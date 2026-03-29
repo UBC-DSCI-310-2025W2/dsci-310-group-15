@@ -18,9 +18,12 @@ dsci-310-group-15/
 |   `-- workflows/
 |       `-- publish_docker_image.yml
 |-- R/
+|   |-- extract_values.R
 |   |-- io_validation_utils.R
 |   |-- plot_class_imbalance.R
-|   `-- plot_numeric_distributions.R
+|   |-- plot_functions.R
+|   |-- plot_numeric_distributions.R
+|   `-- train_test_split_data.R
 |-- data/
 |   |-- raw/
 |   `-- games_sample.json
@@ -41,7 +44,17 @@ dsci-310-group-15/
 |   |-- steam_eda.Rmd
 |   `-- steam_full_analysis.ipynb
 |-- tests/
+|   |-- testthat.R
 |   `-- testthat/
+|       |-- helper-source-r.R
+|       |-- helper-toy-data.R
+|       |-- helper-train_test_data.R
+|       |-- test-03-class-imbalance.R
+|       |-- test-04-numeric-features.R
+|       |-- test-extract_values.R
+|       |-- test-plot_values.R
+|       |-- test-test_data.R
+|       `-- test-train_data.R
 |-- CODE_OF_CONDUCT.md
 |-- CONTRIBUTING.md
 |-- Dockerfile
