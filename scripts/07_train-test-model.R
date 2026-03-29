@@ -19,6 +19,9 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 
 opt <- docopt(doc)
 
+#Source for custom functions.
+source("R/train_test_split_data.R")
+
 knitr::opts_chunk$set(
   echo = TRUE,
   warning = FALSE,
@@ -41,9 +44,6 @@ train_test_model <- function(output_location_from_02, figure_storage_path) {
   df_model <- readRDS(paste(output_location_from_02, 'wrangled_table.RDS', sep = ''))
 
   set.seed(123)
-  train_idx <- createDataPartition(df_model$is_free, p = 0.80, list = FALSE)
-  train_df <- df_model[train_idx, ]
-  test_df <- df_model[-train_idx, ]
 
   predictor_names <- c(
     "required_age", "release_year", "game_type",
@@ -52,10 +52,10 @@ train_test_model <- function(output_location_from_02, figure_storage_path) {
     grep("^cat_", names(df_model), value = TRUE)
   )
 
-  train_model <- train_df |>
+  train_model <- train_split_data(df_model, df_model$is_free, 0.8) |>
     select(is_free, all_of(predictor_names))
 
-  test_model <- test_df |>
+  test_model <- test_split_data(df_model, df_model$is_free, 0.8) |>
     select(is_free, all_of(predictor_names))
 
   baseline_class <- train_model |>
