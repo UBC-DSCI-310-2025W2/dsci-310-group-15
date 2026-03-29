@@ -19,7 +19,7 @@
 #'\dontrun{train_data(iris, iris$class, 0.7) #Assuming you have the iris dataset loaded in.}
 
 train_data <- function(df, target_col, partition_size) {
-    if (partition_size > 0 & partition_size < 1) {
+    if (partition_size > 0 && partition_size < 1) {
       
       train_idx <- caret::createDataPartition(target_col, p = partition_size, list = FALSE)
       train_df <- df[train_idx, ]
