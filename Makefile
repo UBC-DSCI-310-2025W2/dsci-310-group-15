@@ -34,11 +34,11 @@ data/wrangled_table.RDS data/wrangled_table.csv: \
 #results 
 
 results/class_distribution_plot.png: \
-	scripts/03_class-imbalance-check.R data/wrangled_table.RDS 
+	scripts/03_class-imbalance-check.R R/io_validation_utils.R R/plot_class_imbalance.R data/wrangled_table.RDS 
 	Rscript scripts/03_class-imbalance-check.R data/ results/ results/
 
 results/numeric_feature_distributions.png: \
-	scripts/04_numeric-features-distributions.R data/wrangled_table.RDS 
+	scripts/04_numeric-features-distributions.R R/io_validation_utils.R R/plot_numeric_distributions.R data/wrangled_table.RDS 
 	Rscript scripts/04_numeric-features-distributions.R data/ results/ results/
 
 results/target_by_release_binary.png: \
@@ -86,3 +86,6 @@ clean:
 	rm -rf data/games_sample.RDS data/wrangled_table.RDS data/wrangled_table.csv
 	rm -rf results
 	rm -rf reports/steam_full_analysis.html reports/steam_full_analysis.pdf
+
+test:
+	Rscript tests/testthat.R

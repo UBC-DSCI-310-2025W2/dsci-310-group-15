@@ -1,70 +1,51 @@
 "
-Creates a grid of histograms to explore the distribution of the numeric features.
-
-File path should always be relative and end with a backslash.
+Creates a faceted histogram grid for numeric predictors.
 
 Usage: scripts/04_numeric-features-distributions.R <output_location_from_02> <output_to_location_04> <figure_storage_path>
 
 Options:
-<output_location_from_02> location of the output for the tidied data (script 2) was stored.
-<output_to_location_04> location where the output for this script will be stored.
-<figure_storage_path> location where the .png of the plot will be stored.
-" -> doc
+<output_location_from_02> directory containing wrangled_table.RDS from script 02.
+<output_to_location_04> directory where numeric_feature_distributions.RDS will be saved.
+<figure_storage_path> directory where numeric_feature_distributions.png will be saved.
+" -> usage_doc
 
-library(docopt)
-required_packages <- c(
-  "jsonlite", "tidyverse",
-  "scales", "patchwork", "janitor", "knitr"
-)
-
-invisible(lapply(required_packages, library, character.only = TRUE))
-
-knitr::opts_chunk$set(
-  echo = TRUE,
-  warning = FALSE,
-  message = FALSE,
-  fig.width = 10,
-  fig.height = 5.5,
-  fig.align = "center"
-)
-
-theme_set(
-  theme_minimal(base_size = 13) +
-    theme(
-      plot.title = element_text(face = "bold"),
-      legend.position = "right"
-    )
-)
-
-opt <- docopt(doc)
-
-# ---- Numeric predictor distributions ----
-
-numeric_dists <- function(output_location_from_02, output_to_location_04, figure_storage_path) {
-
-  df_model <- readRDS(paste(output_location_from_02, 'wrangled_table.RDS', sep = ''))
-
-  numeric_long <- df_model |>
-    select(is_free, required_age, release_year, platform_count, n_categories) |>
-    pivot_longer(
-      cols = -is_free,
-      names_to = "predictor",
-      values_to = "value"
-    ) |>
-    filter(!(predictor == "release_year" & value <= 0))
-
-  numeric_grid_distribution <- ggplot(numeric_long, aes(x = value)) +
-    geom_histogram(bins = 30, fill = "#2563EB", color = "white", linewidth = 0.25) +
-    facet_grid(is_free ~ predictor, scales = "free_x") +
-    labs(
-      title = "Predictor Distributions by Class",
-      x = "Value",
-      y = "Count"
-    )
-
-saveRDS(numeric_grid_distribution, file = paste(output_to_location_04, 'numeric_feature_distributions.RDS', sep = ''))
-ggsave(numeric_grid_distribution, file = paste(figure_storage_path, 'numeric_feature_distributions.png', sep = ''))
-
+if (!requireNamespace("docopt", quietly = TRUE)) {
+  stop(
+    paste(
+      "Package `docopt` is required.",
+      "Install it with:",
+      "install.packages('docopt', repos = 'https://cloud.r-project.org')",
+      "or run renv::restore() from the project root."
+    ),
+    call. = FALSE
+  )
 }
 
-numeric_dists(opt$output_location_from_02, opt$output_to_location_04, opt$figure_storage_path)
+library(docopt)
+
+find_project_root <- function() {
+  args <- commandArgs(trailingOnly = FALSE)
+  script_arg <- grep("^--file=", args, value = TRUE)
+
+  if (length(script_arg) == 1L) {
+    script_path <- normalizePath(sub("^--file=", "", script_arg), winslash = "/", mustWork = TRUE)
+    return(normalizePath(file.path(dirname(script_path), ".."), winslash = "/", mustWork = TRUE))
+  }
+
+  normalizePath(getwd(), winslash = "/", mustWork = TRUE)
+}
+
+opt <- docopt(usage_doc)
+
+project_root <- find_project_root()
+source(file.path(project_root, "R", "io_validation_utils.R"))
+source(file.path(project_root, "R", "plot_numeric_distributions.R"))
+
+run_numeric_features_distributions(
+  input_data_dir = opt$output_location_from_02,
+  output_object_dir = opt$output_to_location_04,
+  output_figure_dir = opt$figure_storage_path,
+  target_col = "is_free",
+  predictors = c("required_age", "release_year", "platform_count", "n_categories"),
+  drop_non_positive_for = "release_year"
+)
