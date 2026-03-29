@@ -20,8 +20,7 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 opt <- docopt(doc)
 
 #Source for custom functions.
-source("R/test_split_data.R")
-source("R/train_split_data.R")
+source("R/train_test_split_data.R")
 
 knitr::opts_chunk$set(
   echo = TRUE,
