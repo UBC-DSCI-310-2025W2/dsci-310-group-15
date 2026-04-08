@@ -46,7 +46,13 @@ additional_target_plots <- function(output_location_from_02, output_location_05,
     filter(release_year > 0) |>
     count(release_year, is_free)
 
-  p_release <- plot_release_year_by_class(df_model)
+  p_release <- ggplot(release_by_class, aes(x = release_year, y = n, fill = is_free)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Free" = "#4DBBEE", "Paid" = "#E87040"),
+                      name = "Game Type") +
+    labs(title = "Number of Games Released per Year by Class",
+         x = "Release Year", y = "Count") +
+    theme(legend.position = "right")
 
   binary_rates <- df_model |>
     group_by(is_free) |>
@@ -57,7 +63,14 @@ additional_target_plots <- function(output_location_from_02, output_location_05,
     ) |>
     pivot_longer(cols = -is_free, names_to = "feature", values_to = "rate")
 
-  p_binary <- plot_binary_feature_rates()
+  p_binary <- ggplot(binary_rates, aes(x = feature, y = rate, fill = is_free)) +
+    geom_col(position = "dodge") +
+    scale_y_continuous(labels = percent_format()) +
+    scale_fill_manual(values = c("Free" = "#4DBBEE", "Paid" = "#E87040"),
+                      name = "Game Type") +
+    labs(title = "Binary Feature Rates by Class",
+         x = "Feature", y = "Proportion of Games") +
+    theme(legend.position = "right")
 
   target_by_release_binary <- p_release / p_binary
 

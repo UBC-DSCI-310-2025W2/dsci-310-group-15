@@ -21,41 +21,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 /* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
@@ -142,11 +107,6 @@ div.csl-indent {
 </header>
 
 
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
 <section id="summary" class="level1">
 <h1>Summary</h1>
 <p>This project uses machine learning to predict whether a Steam game is free-to-play or paid based on its attributes. Using a snapshot of approximately 5,000 Steam games collected in August 2025 (<span class="citation" data-cites="vintagedon2025dataset">vintagedon (<a href="#ref-vintagedon2025dataset" role="doc-biblioref">2025</a>)</span>), we train a cross-validated logistic regression classifier. The final model achieves 95.9% accuracy and a ROC AUC of 0.923 on the held-out test set, substantially outperforming a majority-class baseline of 79.4%.</p>
@@ -218,18 +178,6 @@ Figure&nbsp;4: Difference in category prevalence between free and paid games.
 <p>The dataset was split 80/20 into training and test sets using stratified sampling to preserve the class ratio. A majority-class baseline — predicting “Paid” for every observation — yields 79.4% accuracy. Logistic regression was trained using <code>caret</code> (<span class="citation" data-cites="caret">Kuhn (<a href="#ref-caret" role="doc-biblioref">2024</a>)</span>) with 5-fold cross-validation optimising for ROC AUC. Only pre-launch observable features were included as predictors.</p>
 <p>Classification metrics for the model on the held-out test set are shown in <a href="#tbl-metrics" class="quarto-xref">Table&nbsp;1</a>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>metrics_tbl <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"../results/evaluation_metrics_table.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Rows: 6 Columns: 2
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-chr (1): metric
-dbl (1): value
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(metrics_tbl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div id="tbl-metrics" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-metrics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -251,23 +199,23 @@ Table&nbsp;1: Classification metrics for the logistic regression model on the he
 </tr>
 <tr class="even">
 <td style="text-align: left;">Model accuracy</td>
-<td style="text-align: right;">0.9585</td>
+<td style="text-align: right;">0.9604</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Sensitivity (Free recall)</td>
-<td style="text-align: right;">0.8323</td>
+<td style="text-align: right;">0.8506</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Specificity (Paid recall)</td>
-<td style="text-align: right;">0.9913</td>
+<td style="text-align: right;">0.9889</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Balanced accuracy</td>
-<td style="text-align: right;">0.9118</td>
+<td style="text-align: right;">0.9198</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">ROC AUC</td>
-<td style="text-align: right;">0.9232</td>
+<td style="text-align: right;">0.9161</td>
 </tr>
 </tbody>
 </table>
@@ -301,18 +249,6 @@ Figure&nbsp;6: Confusion matrix on the held-out test set.
 </div>
 <p>The top 15 variable importance scores are presented in <a href="#tbl-varimp" class="quarto-xref">Table&nbsp;2</a>. The five most important predictors are family sharing, single-player, Steam leaderboards, multiplayer, and demo availability.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>varimp_tbl <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"../results/feature_importances_table.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Rows: 12 Columns: 4
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-chr (1): term
-dbl (3): Estimate, odds_ratio, Pr(&gt;|z|)
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(varimp_tbl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div id="tbl-varimp" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-varimp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">

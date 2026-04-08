@@ -79,7 +79,7 @@ preprocess <- function(output_location_from_01, output_to_location_02, processed
         as.integer(replace_na(linux_support, FALSE)),
       has_dlc = purrr::map_lgl(dlc, ~ length(.x) > 0),
       has_demo = purrr::map_lgl(demos, ~ length(.x) > 0),
-      category_list = purrr::map(categories, extract_values),
+      category_list = purrr::map(categories, extract_values, field_name = "description"),
       n_categories = purrr::map_int(category_list, length),
       developer_name = purrr::map_chr(
         developers,

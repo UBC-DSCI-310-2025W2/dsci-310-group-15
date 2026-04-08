@@ -1,7 +1,7 @@
 "metric","value"
 "Baseline accuracy (majority class)",0.794
-"Model accuracy",0.9585
-"Sensitivity (Free recall)",0.8323
-"Specificity (Paid recall)",0.9913
-"Balanced accuracy",0.9118
-"ROC AUC",0.9232
+"Model accuracy",0.9604
+"Sensitivity (Free recall)",0.8506
+"Specificity (Paid recall)",0.9889
+"Balanced accuracy",0.9198
+"ROC AUC",0.9161
