@@ -90,7 +90,7 @@ Then, launch the container:
 docker run --rm -it -p 8888:8888 -v "$(pwd)":/home/rstudio/dsci-310-group-15 dsci310-project
 ```
 
-After launching the container, open Jupyter Lab in your browser through the link in the terminal: `http://localhost:8888`
+After launching the container, open Jupyter Lab in your browser through the unique link in your terminal. The link should start with `http://localhost:8888`.
 
 
 #### 2. Without using Docker
@@ -115,6 +115,11 @@ R packages:
 * pROC (1.19.0.1)
 * docopt (0.7.2)
 * testthat (3.3.2)
+
+Other Dependencies:
+* GNU Make
+* Quarto
+* LaTeX
 
 ### Data Analysis Pipeline With GNU Make
 This project's `Makefile` automates the data analysis. To render the outputs, make sure that you have cloned the repository and navigated to the root directory:
