@@ -1,17 +1,12 @@
 "
 Downloads the Steam 2025 5K Games dataset from GitHub and saves it as an RDS file.
-The dataset URL is hardcoded in the script; no input file path is required.
-Prints the number of rows and columns on success.
-
-The dataset is sourced from:
-  https://github.com/VintageDon/steam-dataset-2025
+The dataset URL is hardcoded; no input file path is required.
+Dataset source: https://github.com/VintageDon/steam-dataset-2025
 
 Usage: scripts/01_download-data.R <output_to_location_01>
 
 Options:
-<output_to_location_01>  Directory where games_sample.RDS will be saved.
-                         Must be a relative path ending with a trailing slash.
-                         Example: data/
+<output_to_location_01>  Directory to save games_sample.RDS (e.g. data/)
 " -> doc
 
 # ---- Libraries ----

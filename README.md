@@ -87,12 +87,12 @@ cd dsci-310-group-15
 **Step 2 — Pull the pre-built image from Docker Hub:**
 
 ```bash
-docker pull thequach/dsci310-group15:latest
+docker pull thequach/dsci-310-group-15:latest
 ```
 
 > Alternatively, build the image locally from the `Dockerfile`:
 > ```bash
-> docker build -t thequach/dsci310-group15:latest .
+> docker build -t thequach/dsci-310-group-15:latest .
 > ```
 > Note: this can take 10–20 minutes as R packages are compiled from source.
 
@@ -103,7 +103,7 @@ docker run --rm -it \
   -p 8888:8888 \
   -v "$(pwd)":/home/rstudio/project \
   -w /home/rstudio/project \
-  thequach/dsci310-group15:latest \
+  thequach/dsci-310-group-15:latest \
   bash
 ```
 
