@@ -1,14 +1,18 @@
 "
 Plots the rates of certain categories showing up in the targets.
 
-File path should always be relative and end with a backslash.
-
 Usage: scripts/06_categorical-features-plots.R <output_location_from_02> <output_location_06> <figure_storage_path>
 
 Options:
-<output_location_from_02> location of the output for the tidied data (script 2) was stored.
-<output_to_location_06> location where the output for this script will be stored.
-<figure_storage_path> location where the .png of the plot will be stored.
+<output_location_from_02>  Directory containing wrangled_table.RDS from script 02.
+                           Must be a relative path ending with a trailing slash.
+                           Example: data/
+<output_location_06>       Directory where categorical_feat_gap.RDS will be saved.
+                           Must be a relative path ending with a trailing slash.
+                           Example: results/
+<figure_storage_path>      Directory where categorical_feat_gap.png will be saved.
+                           Must be a relative path ending with a trailing slash.
+                           Example: results/
 " -> doc
 
 library(docopt)

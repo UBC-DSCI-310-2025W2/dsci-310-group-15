@@ -34,7 +34,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/dsci310-project
+          images: ${{ secrets.DOCKER_USERNAME }}/dsci-310-group-15
           tags: |
             type=sha,prefix=sha-
             type=raw,value=latest

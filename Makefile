@@ -23,7 +23,7 @@ results:
 #data
 
 data/games_sample.RDS: scripts/01_download-data.R 
-	Rscript scripts/01_download-data.R input_url data/
+	Rscript scripts/01_download-data.R data/
 
 
 data/wrangled_table.RDS data/wrangled_table.csv: \
