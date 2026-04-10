@@ -1,17 +1,17 @@
 "
-This script takes in the URL for the data and returns the necessary data for the later preprocessing.
-Prints out the shape of the dataframe if successful.
+Downloads the Steam 2025 5K Games dataset from GitHub and saves it as an RDS file.
+The dataset URL is hardcoded in the script; no input file path is required.
+Prints the number of rows and columns on success.
 
-Dataset can be downloaded from: https://media.githubusercontent.com/media/VintageDon/steam-dataset-2025/main/data/01_raw/steam_2025_5k-dataset-games_20250831.json.gz
-(Be warned it's a large file.)
+The dataset is sourced from:
+  https://github.com/VintageDon/steam-dataset-2025
 
-Use a relative file path for the output_location and end it with a backslash.
-
-Usage: scripts/01_download_data.R <input_file> <output_to_location_01>
+Usage: scripts/01_download-data.R <output_to_location_01>
 
 Options:
-<input_file> the file that will be read.
-<output_to_location_01> the location that the file will be saved in.
+<output_to_location_01>  Directory where games_sample.RDS will be saved.
+                         Must be a relative path ending with a trailing slash.
+                         Example: data/
 " -> doc
 
 # ---- Libraries ----
@@ -39,7 +39,7 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 opt <- docopt(doc)
 
 # ---- Reproducible data download ----
-load_in <- function(input, output_to_location_01) {
+load_in <- function(output_to_location_01) {
 
   dataset_file <- "steam_2025_5k-dataset-games_20250831.json.gz"
   dataset_urls <- c(
@@ -165,4 +165,4 @@ load_in <- function(input, output_to_location_01) {
   saveRDS(df, paste(output_to_location_01, 'games_sample.RDS', sep = ''))
 }
 
-load_in(opt$input_url, opt$output_to_location_01)
+load_in(opt$output_to_location_01)

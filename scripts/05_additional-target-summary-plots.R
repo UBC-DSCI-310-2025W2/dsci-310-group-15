@@ -1,14 +1,18 @@
 "
 Looks at the target variable using different plots to explore other ways of representing the class imbalance.
 
-File path should always be relative and end with a backslash.
-
-Usage: scripts/05_additional-target-summary.R <output_location_from_02> <output_location_05> <figure_storage_path>
+Usage: scripts/05_additional-target-summary-plots.R <output_location_from_02> <output_location_05> <figure_storage_path>
 
 Options:
-<output_location_from_02> location of the output for the tidied data (script 2) was stored.
-<output_to_location_05> location where the output for this script will be stored.
-<figure_storage_path> location where the .png of the plot will be stored.
+<output_location_from_02>  Directory containing wrangled_table.RDS from script 02.
+                           Must be a relative path ending with a trailing slash.
+                           Example: data/
+<output_location_05>       Directory where target_by_release_binary.RDS will be saved.
+                           Must be a relative path ending with a trailing slash.
+                           Example: results/
+<figure_storage_path>      Directory where target_by_release_binary.png will be saved.
+                           Must be a relative path ending with a trailing slash.
+                           Example: results/
 " -> doc
 
 library(docopt)
