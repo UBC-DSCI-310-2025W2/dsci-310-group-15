@@ -155,6 +155,23 @@ run_data_preprocessing <- function(
 
   rds_path <- build_file_path(output_data_dir, "wrangled_table.RDS")
   csv_path <- build_file_path(table_output_dir, "wrangled_table.csv")
+  validation_report_path <- build_file_path(output_data_dir, "data_validation_report.csv")
+
+  input_validation <- load_validated_rds_data_frame(
+    input_path,
+    stage = "raw_file",
+    data_name = "games_sample"
+  )
+  validation_report <- input_validation$report
+  save_validation_report(validation_report, output_data_dir, "data_validation_report.csv")
+  assert_no_validation_failures(validation_report)
+
+  games_data <- input_validation$data
+  raw_validation <- validate_raw_games_data(games_data, stage = "raw_source")
+  validation_report <- combine_validation_reports(validation_report, raw_validation)
+  save_validation_report(validation_report, output_data_dir, "data_validation_report.csv")
+  assert_no_validation_failures(validation_report)
+
   needs_refresh <- force ||
     !file.exists(rds_path) ||
     !file.exists(csv_path) ||
@@ -162,19 +179,40 @@ run_data_preprocessing <- function(
     file.info(input_path)$mtime > file.info(csv_path)$mtime
 
   if (needs_refresh) {
-    games_data <- readRDS(input_path)
     modeling_table <- build_modeling_table(games_data, top_n_categories = top_n_categories)
+  } else {
+    modeling_validation_file <- load_validated_rds_data_frame(
+      rds_path,
+      stage = "wrangled_file",
+      data_name = "wrangled_table"
+    )
+    validation_report <- combine_validation_reports(validation_report, modeling_validation_file$report)
+    save_validation_report(validation_report, output_data_dir, "data_validation_report.csv")
+    assert_no_validation_failures(validation_report)
+    modeling_table <- modeling_validation_file$data
+  }
+
+  modeling_validation <- validate_modeling_table(
+    modeling_table,
+    stage = "modeling_table",
+    expected_category_count = top_n_categories
+  )
+  validation_report <- combine_validation_reports(validation_report, modeling_validation)
+  save_validation_report(validation_report, output_data_dir, "data_validation_report.csv")
+  assert_no_validation_failures(validation_report)
+
+  if (needs_refresh) {
     saveRDS(modeling_table, rds_path)
     utils::write.csv(modeling_table, csv_path, row.names = FALSE)
-  } else {
-    modeling_table <- readRDS(rds_path)
   }
 
   message("Modeling table: ", nrow(modeling_table), " rows x ", ncol(modeling_table), " columns")
+  message("Data validation report: ", validation_report_path)
 
   list(
     modeling_table = modeling_table,
     rds_path = rds_path,
-    csv_path = csv_path
+    csv_path = csv_path,
+    validation_report_path = validation_report_path
   )
 }
