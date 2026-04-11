@@ -1,5 +1,5 @@
 "
-Create release-year and binary-feature target summary plots.
+Looks at the target variable using different plots to explore other ways of representing the class imbalance.
 
 Usage: scripts/05_additional-target-summary-plots.R <output_location_from_02> <output_location_05> <figure_storage_path>
 

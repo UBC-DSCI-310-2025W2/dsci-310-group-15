@@ -1,95 +1,71 @@
-#' Validate train/test split inputs
+#--- 1. train_split_data -------------
+#' Creates training portion of a data frame.
+#' 
+#' Given a data frame, knowing the target and predictor columns, splits the data into its training split.
+#' Uses the caret function `createDataPartition` to perform the split.
+#' Returns a data frame.
+#' This function keeps all of the original columns, and can work on only a target column.
+#' 
+#' You must set your own seed to ensure the result can be reproduced.
+#' 
+#' @param df The data frame to be split.
+#' @param target_col The target column of the data frame that will be split. (e.g. df$target)
+#'    The `$` takes the target column from the data frame.
+#' @param partition_size How large the TRAINING portion will be (must be a float greater than 0 and less than 1).
+#' 
+#' @return A data frame containing the test split of the data.
+#'    It will contain all the columns. It allows you the freedom to pick and test which variables will contribute the most.
 #'
-#' @param df Data frame to split.
-#' @param target_col Target vector used for stratification.
-#' @param partition_size Proportion of rows assigned to the training split.
-#'
-#' @return `TRUE` invisibly when validation passes.
-validate_train_test_split_inputs <- function(df, target_col, partition_size) {
-  if (!is.data.frame(df)) {
-    stop("`df` must be a data frame.", call. = FALSE)
-  }
+#'@examples
+#'\dontrun{train_data(iris, iris$class, 0.7) #Assuming you have the iris dataset loaded in.}
 
-  if (length(target_col) != nrow(df)) {
-    stop("`target_col` must be a vector with one value per row in `df`.", call. = FALSE)
-  }
-
-  if (!is.numeric(partition_size) || length(partition_size) != 1L ||
-      is.na(partition_size) || partition_size <= 0 || partition_size >= 1) {
-    stop("`partition_size` must be a single number between 0 and 1.", call. = FALSE)
-  }
-
-  invisible(TRUE)
-}
-
-#' Create complementary train and test splits
-#'
-#' Uses `caret::createDataPartition()` once, then derives both train and test rows
-#' from the same index vector. Use this function when both splits are needed
-#' together.
-#'
-#' @param df Data frame to split.
-#' @param target_col Target vector used for stratification.
-#' @param partition_size Proportion of rows assigned to the training split.
-#' @param seed Optional random seed for reproducible splitting.
-#'
-#' @return A list containing `train`, `test`, `train_index`, and `test_index`.
-#' @examples
-#' \dontrun{
-#' split <- create_train_test_split(iris, iris$Species, 0.8, seed = 123)
-#' }
-create_train_test_split <- function(df, target_col, partition_size, seed = NULL) {
-  validate_train_test_split_inputs(df, target_col, partition_size)
-
-  if (!is.null(seed)) {
-    if (!is.numeric(seed) || length(seed) != 1L || is.na(seed)) {
-      stop("`seed` must be `NULL` or a single number.", call. = FALSE)
-    }
-    set.seed(seed)
-  }
-
-  train_index <- as.integer(caret::createDataPartition(
-    target_col,
-    p = partition_size,
-    list = FALSE
-  ))
-  all_index <- seq_len(nrow(df))
-  test_index <- setdiff(all_index, train_index)
-
-  list(
-    train = df[train_index, , drop = FALSE],
-    test = df[test_index, , drop = FALSE],
-    train_index = train_index,
-    test_index = test_index
-  )
-}
-
-#' Create the training portion of a data frame
-#'
-#' @param df Data frame to split.
-#' @param target_col Target vector used for stratification.
-#' @param partition_size Proportion of rows assigned to the training split.
-#'
-#' @return A data frame containing the training split.
-#' @examples
-#' \dontrun{
-#' train_split_data(iris, iris$Species, 0.8)
-#' }
 train_split_data <- function(df, target_col, partition_size) {
-  create_train_test_split(df, target_col, partition_size)$train
-}
+  if (checkmate::checkDataFrame(df) == TRUE) {
+    if (partition_size > 0 && partition_size < 1) {
+      
+      train_idx <- caret::createDataPartition(target_col, p = partition_size, list = FALSE)
+      train_df <- df[train_idx, ]
+      
+    } else {
+      stop("You did not pick a valid option for the training split. Pick a float between 0 and 1.")
+    }
+  }
+  train_df
+  }
 
-#' Create the testing portion of a data frame
-#'
-#' @param df Data frame to split.
-#' @param target_col Target vector used for stratification.
-#' @param partition_size Proportion of rows assigned to the training split.
-#'
-#' @return A data frame containing the testing split.
-#' @examples
-#' \dontrun{
-#' test_split_data(iris, iris$Species, 0.8)
-#' }
+#--- 2. test_split_data -------------
+
+#' Creates training portion of a data frame.
+#' 
+#' Given a data frame, knowing the target and predictor columns, splits the data into its testing split.
+#' Uses the caret function `createDataPartition` to perform the split.
+#' Returns a data frame.
+#' This function keeps all of the original columns, and can work on only a target column.
+#' 
+#' You must set your own seed to ensure the result can be produced again.
+#' 
+#' @param df The data frame to be split.
+#' @param target_col The target column of the data frame that will be split.
+#'    The `$` takes the target column from the data frame.
+#' @param partition_size How large the TRAINING portion will be (must be a float greater than 0 and less than 1).
+#' 
+#' @return A data frame containing the test split of the data.
+#'    It will contain all the columns. It allows you the freedom to pick and test which variables will contribute the most
+#'    
+#'@examples
+#'\dontrun{train_data(iris, iris$class, 0.7) #Assuming you have the iris dataset loaded in.}
+
 test_split_data <- function(df, target_col, partition_size) {
-  create_train_test_split(df, target_col, partition_size)$test
+  if (checkmate::checkDataFrame(df) == TRUE) {
+    if (partition_size > 0 && partition_size < 1) {
+      train_idx <- caret::createDataPartition(target_col, p = partition_size, list = FALSE)
+      test_df <- df[-train_idx, ]
+      
+    } else {
+      stop("You did not pick a valid option for the training split. Pick a float between 0 and 1.")
+    }
+  } else {
+    stop("The data must be in the form of a dataframe.")
+  }
+  test_df
 }

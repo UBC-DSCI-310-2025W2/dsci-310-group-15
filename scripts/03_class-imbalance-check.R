@@ -1,36 +1,48 @@
 "
-Create a class-imbalance bar chart from the wrangled table.
+Creates a class-imbalance bar chart from the wrangled table.
 
-Usage:
-  scripts/03_class-imbalance-check.R <input_data_dir> <plot_object_dir> <figure_dir>
+Usage: scripts/03_class-imbalance-check.R <output_location_from_02> <output_to_location_03> <figure_storage_path>
 
 Options:
-  <input_data_dir>   Directory containing wrangled_table.RDS from script 02.
-  <plot_object_dir>  Directory where class_distribution_plot.RDS will be saved.
-  <figure_dir>       Directory where class_distribution_plot.png will be saved.
+<output_location_from_02> directory containing wrangled_table.RDS from script 02.
+<output_to_location_03> directory where class_distribution_plot.RDS will be saved.
+<figure_storage_path> directory where class_distribution_plot.png will be saved.
 " -> usage_doc
 
-script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
-script_dir <- if (length(script_arg) == 1L) {
-  dirname(normalizePath(sub("^--file=", "", script_arg), winslash = "/", mustWork = TRUE))
-} else {
-  getwd()
+if (!requireNamespace("docopt", quietly = TRUE)) {
+  stop(
+    paste(
+      "Package `docopt` is required.",
+      "Install it with:",
+      "install.packages('docopt', repos = 'https://cloud.r-project.org')",
+      "or run renv::restore() from the project root."
+    ),
+    call. = FALSE
+  )
 }
-script_utils_path <- file.path(script_dir, "..", "R", "script_utils.R")
-if (!file.exists(script_utils_path)) {
-  script_utils_path <- file.path(getwd(), "R", "script_utils.R")
+
+library(docopt)
+
+find_project_root <- function() {
+  args <- commandArgs(trailingOnly = FALSE)
+  script_arg <- grep("^--file=", args, value = TRUE)
+
+  if (length(script_arg) == 1L) {
+    script_path <- normalizePath(sub("^--file=", "", script_arg), winslash = "/", mustWork = TRUE)
+    return(normalizePath(file.path(dirname(script_path), ".."), winslash = "/", mustWork = TRUE))
+  }
+
+  normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 }
-source(script_utils_path)
 
-project_root <- find_project_root(script_dir)
-load_required_packages(c("docopt", "dplyr", "ggplot2", "scales"))
-opt <- docopt::docopt(usage_doc)
+opt <- docopt(usage_doc)
 
-source_project_file(project_root, "R", "io_validation_utils.R")
-source_project_file(project_root, "R", "plot_class_imbalance.R")
+project_root <- find_project_root()
+source(file.path(project_root, "R", "io_validation_utils.R"))
+source(file.path(project_root, "R", "plot_class_imbalance.R"))
 
-invisible(run_class_imbalance_check(
-  input_data_dir = opt$input_data_dir,
-  output_object_dir = opt$plot_object_dir,
-  output_figure_dir = opt$figure_dir
-))
+run_class_imbalance_check(
+  input_data_dir = opt$output_location_from_02,
+  output_object_dir = opt$output_to_location_03,
+  output_figure_dir = opt$figure_storage_path
+)

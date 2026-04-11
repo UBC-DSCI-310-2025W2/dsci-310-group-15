@@ -28,5 +28,5 @@ test_that("If the data frame is not actually a data frame, the function terminat
 })
 
 test_that("If the function does not receive `target_col` as a slice of a data frame, it will terminate and give an error.", {
-  expect_error(test_split_data(normal1_df, NULL, 0.8))
+  expect_error(test_split_data(normal1_df, normal1_df$wowee, 0.8))
 })
