@@ -5,13 +5,11 @@ Prints out the shape of the dataframe if successful.
 Dataset can be downloaded from: https://media.githubusercontent.com/media/VintageDon/steam-dataset-2025/main/data/01_raw/steam_2025_5k-dataset-games_20250831.json.gz
 (Be warned it's a large file.)
 
-Use a relative file path for the output_location and end it with a backslash.
-
-Usage: scripts/01_download_data.R <input_file> <output_to_location_01>
+Usage: scripts/01_download_data.R <input_file> <games_raw_data_save_location>
 
 Options:
-<input_file> the file that will be read.
-<output_to_location_01> the location that the file will be saved in.
+<input_file> the file that will be read. ###TODO: make sure that this is a valid input. Either use a url or file path to access.
+<games_raw_data_save_location> the location that the raw data will be saved in.
 " -> doc
 
 # ---- Libraries ----
@@ -39,7 +37,7 @@ invisible(lapply(required_packages, library, character.only = TRUE))
 opt <- docopt(doc)
 
 # ---- Reproducible data download ----
-load_in <- function(input, output_to_location_01) {
+load_in <- function(input, games_raw_data_save_location) { #TODO: make sure that this is a valid input. Either use a url or file path to access.
 
   dataset_file <- "steam_2025_5k-dataset-games_20250831.json.gz"
   dataset_urls <- c(
@@ -162,7 +160,7 @@ load_in <- function(input, output_to_location_01) {
   cat("Local JSON copy:", normalizePath(json_copy_path, winslash = "/"), "\n")
   cat("Rows:", nrow(df), "Columns:", ncol(df), "\n")
 
-  saveRDS(df, paste(output_to_location_01, 'games_sample.RDS', sep = ''))
+  saveRDS(df, paste(games_raw_data_save_location, 'games_sample.RDS', sep = ''))
 }
 
-load_in(opt$input_url, opt$output_to_location_01)
+load_in(opt$input_url, opt$games_raw_data_save_location)

@@ -1,12 +1,12 @@
 "
 Creates a class-imbalance bar chart from the wrangled table.
 
-Usage: scripts/03_class-imbalance-check.R <output_location_from_02> <output_to_location_03> <figure_storage_path>
+Usage: scripts/03_class-imbalance-check.R <games_wrangled_data_save_location> <class_imbalance_rds_save> <figures_storage_path>
 
 Options:
-<output_location_from_02> directory containing wrangled_table.RDS from script 02.
-<output_to_location_03> directory where class_distribution_plot.RDS will be saved.
-<figure_storage_path> directory where class_distribution_plot.png will be saved.
+<games_wrangled_data_save_location> location of the wrangled table from 02_data-preprocessing.R is stored.
+<class_imbalance_rds_save> location where class_distribution_plot.RDS will be saved.
+<figures_storage_path> location where class_distribution_plot.png will be saved.
 " -> usage_doc
 
 if (!requireNamespace("docopt", quietly = TRUE)) {
@@ -42,7 +42,7 @@ source(file.path(project_root, "R", "io_validation_utils.R"))
 source(file.path(project_root, "R", "plot_class_imbalance.R"))
 
 run_class_imbalance_check(
-  input_data_dir = opt$output_location_from_02,
-  output_object_dir = opt$output_to_location_03,
-  output_figure_dir = opt$figure_storage_path
+  input_data_dir = opt$games_wrangled_data_save_location,
+  output_object_dir = opt$class_imbalance_rds_save,
+  output_figure_dir = opt$figures_storage_path
 )

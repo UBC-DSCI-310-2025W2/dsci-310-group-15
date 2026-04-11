@@ -1,14 +1,12 @@
 "
-Looks at the target variable using different plots to explore other ways of representing the class imbalance.
+Looks at the target variable using different plots to explore other ways of representing the class imbalance. Uses the wrangled data.
 
-File path should always be relative and end with a backslash.
-
-Usage: scripts/05_additional-target-summary.R <output_location_from_02> <output_location_05> <figure_storage_path>
+Usage: scripts/05_additional-target-summary.R <games_wrangled_data_save_location> <output_location_05> <figures_storage_path>
 
 Options:
-<output_location_from_02> location of the output for the tidied data (script 2) was stored.
-<output_to_location_05> location where the output for this script will be stored.
-<figure_storage_path> location where the .png of the plot will be stored.
+<games_wrangled_data_save_location> location of the wrangled table from 02_data-preprocessing.R is stored.
+<rds_save_location> location where target_by_release_binary.RDS will be stored.
+<figures_storage_path> location where target_by_release_binary.png will be stored.
 " -> doc
 
 library(docopt)
@@ -38,15 +36,18 @@ theme_set(
 
 opt <- docopt(doc)
 
+#Source
+source("R/plot_functions.R")
+
 # ---- Additional predictor summaries ----
-additional_target_plots <- function(output_location_from_02, output_location_05, figure_storage_path) {
-  df_model <- readRDS(paste(output_location_from_02, 'wrangled_table.RDS', sep = ''))
+additional_target_plots <- function(games_wrangled_data_save_location, rds_save_location, figures_storage_path) {
+  df_model <- readRDS(paste(games_wrangled_data_save_location, 'wrangled_table.RDS', sep = ''))
 
   release_by_class <- df_model |>
     filter(release_year > 0) |>
     count(release_year, is_free)
 
-  p_release <- plot_release_year_by_class(df_model)
+  p_release <- plot_release_year_by_class(df_model) # TODO: fix function
 
   binary_rates <- df_model |>
     group_by(is_free) |>
@@ -57,13 +58,13 @@ additional_target_plots <- function(output_location_from_02, output_location_05,
     ) |>
     pivot_longer(cols = -is_free, names_to = "feature", values_to = "rate")
 
-  p_binary <- plot_binary_feature_rates()
+  p_binary <- plot_binary_feature_rates() #TODO: check if this is the correct call
 
   target_by_release_binary <- p_release / p_binary
 
-  saveRDS(target_by_release_binary, file = paste(output_location_05, 'target_by_release_binary.RDS', sep = ''))
-  ggsave(target_by_release_binary, file = paste(figure_storage_path, 'target_by_release_binary.png', sep = ''))
+  saveRDS(target_by_release_binary, file = paste(rds_save_location, 'target_by_release_binary.RDS', sep = ''))
+  ggsave(target_by_release_binary, file = paste(figures_storage_path, 'target_by_release_binary.png', sep = ''))
 
 }
 
-additional_target_plots(opt$output_location_from_02, opt$output_location_05, opt$figure_storage_path)
+additional_target_plots(opt$games_wrangled_data_save_location, opt$rds_save_location, opt$figures_storage_path)

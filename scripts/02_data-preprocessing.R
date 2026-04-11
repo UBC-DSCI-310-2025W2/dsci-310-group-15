@@ -2,12 +2,12 @@
 Preprocesses the downloaded sample file.
 Handles the nested data types, renames certain variables for better readability, and removes NAs.
 
-Usage: scripts/02_data-preprocessing.R <output_location_from_01> <output_to_location_02> <processed_table_storage>
+Usage: scripts/02_data-preprocessing.R <games_raw_data_save_location> <games_wrangled_data_save_location> <figures_storage_path>
 
 Options:
-<output_location_from_01> location where the output from the previous script was stored.
-<output_to_location_02> location where the output for this script will be stored.
-<processed_table_storage> location where the .csv of the table will be stored.
+<games_raw_data_save_location> location of the raw from 01_download-data.R is stored.
+<games_wrangled_data_save_location> location where wrangled_table.RDS will be stored.
+<figures_storage_path> location where wrangled_table.csv will be stored.
 " -> doc
 
 library(docopt)
@@ -22,8 +22,8 @@ source("R/extract_values.R")
 
 opt <- docopt(doc)
 
-preprocess <- function(output_location_from_01, output_to_location_02, processed_table_storage){
-  df <- readRDS(paste(output_location_from_01, 'games_sample.RDS', sep = ''))
+preprocess <- function(games_raw_data_save_location, games_wrangled_data_save_location, figures_storage_path){
+  df <- readRDS(paste(games_raw_data_save_location, 'games_sample.RDS', sep = ''))
 
   # ---- Cleaning and feature engineering ----
 
@@ -133,10 +133,10 @@ preprocess <- function(output_location_from_01, output_to_location_02, processed
   cat("Modeling table:", nrow(df_model), "rows x", ncol(df_model), "columns
   ")
 
-  write.csv(df_model, paste(processed_table_storage, 'wrangled_table.csv', sep = ''), row.names = FALSE)
+  write.csv(df_model, paste(figures_storage_path, 'wrangled_table.csv', sep = ''), row.names = FALSE)
 
-  saveRDS(df_model, paste(output_to_location_02, 'wrangled_table.RDS', sep = ''))
+  saveRDS(df_model, paste(games_wrangled_data_save_location, 'wrangled_table.RDS', sep = ''))
 
 }
 
-preprocess(opt$output_location_from_01, opt$output_to_location_02, opt$processed_table_storage)
+preprocess(opt$games_raw_data_save_location, opt$games_wrangled_data_save_location, opt$figures_storage_path)

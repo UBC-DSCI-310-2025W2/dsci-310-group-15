@@ -1,14 +1,12 @@
 "
-Plots the rates of certain categories showing up in the targets.
+Plots the rates of certain categories showing up in the targets in the wrangled data.
 
-File path should always be relative and end with a backslash.
-
-Usage: scripts/06_categorical-features-plots.R <output_location_from_02> <output_location_06> <figure_storage_path>
+Usage: scripts/06_categorical-features-plots.R <games_wrangled_data_save_location> <rds_save_location> <figures_storage_path>
 
 Options:
-<output_location_from_02> location of the output for the tidied data (script 2) was stored.
-<output_to_location_06> location where the output for this script will be stored.
-<figure_storage_path> location where the .png of the plot will be stored.
+<games_wrangled_data_save_location> location of the wrangled table from 02_data-preprocessing.R is stored.
+<rds_save_location> location where categorical_feat_gap.RDS will be stored.
+<figures_storage_path> location where categorical_feat_gap.png will be stored.
 " -> doc
 
 library(docopt)
@@ -38,9 +36,12 @@ theme_set(
 
 opt <- docopt(doc)
 
+#Source
+source("R/plot_functions.R")
+
 # ---- Category-level predictive signals ----
-categorical_plotter <- function(output_location_from_02, output_to_location_06, figure_storage_path) {
-  df_model <- readRDS(paste(output_location_from_02, 'wrangled_table.RDS', sep = ''))
+categorical_plotter <- function(games_wrangled_data_save_location, output_to_location_06, figures_storage_path) {
+  df_model <- readRDS(paste(games_wrangled_data_save_location, 'wrangled_table.RDS', sep = ''))
 
   # Rebuild cat_prev from the cat_ indicator columns already in df_model
   cat_cols <- grep("^cat_", names(df_model), value = TRUE)
@@ -58,7 +59,7 @@ categorical_plotter <- function(output_location_from_02, output_to_location_06, 
   categorical_feat_gap <- plot_category_gap(cat_gap, top_n = 12)
 
   saveRDS(categorical_feat_gap, file = paste(output_to_location_06, 'categorical_feat_gap.RDS', sep = ''))
-  ggsave(categorical_feat_gap, file = paste(figure_storage_path, 'categorical_feat_gap.png', sep = ''))
+  ggsave(categorical_feat_gap, file = paste(figures_storage_path, 'categorical_feat_gap.png', sep = ''))
 }
 
-categorical_plotter(opt$output_location_from_02, opt$output_location_06, opt$figure_storage_path)
+categorical_plotter(opt$games_wrangled_data_save_location, opt$rds_save_location, opt$figures_storage_path)

@@ -2,12 +2,10 @@
 Creates, fits, cross-validates, and tests a general linear model.
 After that, it tabulates all the results and returns classification metrics and feature importances.
 
-File path should always be relative and end with a backslash.
-
-Usage: scripts/07_train-test-model.R <output_location_from_02> <figure_storage_path>
+Usage: scripts/07_train-test-model.R <games_wrangled_data_save_location> <figures_storage_path>
 Options:
-<output_location_from_02> location of the output for the tidied data (script 2) was stored.
-<figure_storage_path> location where the .png of the plot will be stored.
+<games_wrangled_data_save_location> location of the wrangled table from 02_data-preprocessing.R is stored.
+<figures_storage_path> location where feature_importances_table.csv, evaluation_metrics_table.csv, roc_curve.png, and confusion_matrix.png will be stored.
 " -> doc
 
 required_packages <- c(
@@ -40,8 +38,8 @@ theme_set(
 )
 
 # ---- Train/test split and logistic model ----
-train_test_model <- function(output_location_from_02, figure_storage_path) {
-  df_model <- readRDS(paste(output_location_from_02, 'wrangled_table.RDS', sep = ''))
+train_test_model <- function(games_wrangled_data_save_location, figures_storage_path) {
+  df_model <- readRDS(paste(games_wrangled_data_save_location, 'wrangled_table.RDS', sep = ''))
 
   set.seed(123)
 
@@ -175,10 +173,10 @@ train_test_model <- function(output_location_from_02, figure_storage_path) {
     slice_head(n = 12)
 
   #----Report visuals----
-  write.csv(feature_importances, paste(figure_storage_path, 'feature_importances_table.csv', sep = ''), row.names = FALSE)
-  write.csv(evaluation_metrics_table, paste(figure_storage_path, 'evaluation_metrics_table.csv', sep = ''), row.names = FALSE)
-  ggsave(roc_curve, file = paste(figure_storage_path, 'roc_curve.png', sep = ''))
-  ggsave(confusion_matrix, file = paste(figure_storage_path, 'confusion_matrix.png', sep = ''))
+  write.csv(feature_importances, paste(figures_storage_path, 'feature_importances_table.csv', sep = ''), row.names = FALSE)
+  write.csv(evaluation_metrics_table, paste(figures_storage_path, 'evaluation_metrics_table.csv', sep = ''), row.names = FALSE)
+  ggsave(roc_curve, file = paste(figures_storage_path, 'roc_curve.png', sep = ''))
+  ggsave(confusion_matrix, file = paste(figures_storage_path, 'confusion_matrix.png', sep = ''))
 }
 
-train_test_model(opt$output_location_from_02, opt$figure_storage_path)
+train_test_model(opt$games_wrangled_data_save_location, opt$figures_storage_path)

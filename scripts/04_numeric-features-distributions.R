@@ -1,12 +1,12 @@
 "
-Creates a faceted histogram grid for numeric predictors.
+Creates a faceted histogram grid for numeric predictors using the wrangled data.
 
-Usage: scripts/04_numeric-features-distributions.R <output_location_from_02> <output_to_location_04> <figure_storage_path>
+Usage: scripts/04_numeric-features-distributions.R <games_wrangled_data_save_location> <rds_save_location> <figures_storage_path>
 
 Options:
-<output_location_from_02> directory containing wrangled_table.RDS from script 02.
-<output_to_location_04> directory where numeric_feature_distributions.RDS will be saved.
-<figure_storage_path> directory where numeric_feature_distributions.png will be saved.
+<games_wrangled_data_save_location> location of the wrangled table from 02_data-preprocessing.R is stored.
+<rds_save_location> location where numeric_feature_distributions.RDS will be saved.
+<figures_storage_path> location where numeric_feature_distributions.png will be saved.
 " -> usage_doc
 
 if (!requireNamespace("docopt", quietly = TRUE)) {
@@ -42,9 +42,9 @@ source(file.path(project_root, "R", "io_validation_utils.R"))
 source(file.path(project_root, "R", "plot_numeric_distributions.R"))
 
 run_numeric_features_distributions(
-  input_data_dir = opt$output_location_from_02,
-  output_object_dir = opt$output_to_location_04,
-  output_figure_dir = opt$figure_storage_path,
+  input_data_dir = opt$games_wrangled_data_save_location,
+  output_object_dir = opt$rds_save_location,
+  output_figure_dir = opt$figures_storage_path,
   target_col = "is_free",
   predictors = c("required_age", "release_year", "platform_count", "n_categories"),
   drop_non_positive_for = "release_year"
