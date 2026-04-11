@@ -26,6 +26,7 @@ load_required_packages(c("docopt", "dplyr", "tibble", "ggplot2", "scales", "care
 opt <- docopt::docopt(usage_doc)
 
 source_project_file(project_root, "R", "io_validation_utils.R")
+source_project_file(project_root, "R", "data_validation.R")
 source_project_file(project_root, "R", "model_training.R")
 
 invisible(run_train_test_model(

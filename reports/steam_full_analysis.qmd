@@ -63,6 +63,31 @@ flags were cast to logical and summed into `platform_count`, and the top 15 most
 game categories were one-hot encoded as indicator columns. Missing values were imputed
 with sensible defaults, keeping data loss below 10%.
 
+## Data Validation
+
+The pipeline runs data validation before the wrangled table is used for plots or
+modeling. Structural checks fail the pipeline when the source file format, required
+columns, empty observations, required missingness, data types, duplicates, value
+ranges, category levels, or target distribution do not match expectations. Optional
+developer/publisher metadata missingness is recorded as a warning because those fields
+are not model predictors.
+
+Correlation diagnostics are run only on the training split after stratified sampling.
+This avoids using held-out test-set relationships to guide modeling decisions.
+
+```{r}
+#| label: tbl-validation-summary
+#| tbl-cap: "Data validation check summary by pipeline stage."
+validation_summary <- bind_rows(
+  read_csv("../data/data_validation_report.csv", show_col_types = FALSE),
+  read_csv("../results/train_validation_report.csv", show_col_types = FALSE)
+) |>
+  count(stage, status, name = "n_checks") |>
+  arrange(stage, status)
+
+kable(validation_summary)
+```
+
 ## Exploratory Data Analysis
 
 The dataset is heavily imbalanced: paid games account for 79.4% of records and free

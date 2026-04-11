@@ -13,6 +13,7 @@ resolve_project_root <- function() {
 project_root <- resolve_project_root()
 
 source(file.path(project_root, "R", "io_validation_utils.R"))
+source(file.path(project_root, "R", "data_validation.R"))
 source(file.path(project_root, "R", "plot_class_imbalance.R"))
 source(file.path(project_root, "R", "plot_numeric_distributions.R"))
 source(file.path(project_root, "R", "plot_target_summary.R"))
