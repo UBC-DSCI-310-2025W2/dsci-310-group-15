@@ -1,14 +1,18 @@
 "
 Plots the rates of certain categories showing up in the targets.
 
-File path should always be relative and end with a backslash.
-
 Usage: scripts/06_categorical-features-plots.R <output_location_from_02> <output_location_06> <figure_storage_path>
 
 Options:
-<output_location_from_02> location of the output for the tidied data (script 2) was stored.
-<output_to_location_06> location where the output for this script will be stored.
-<figure_storage_path> location where the .png of the plot will be stored.
+<output_location_from_02>  Directory containing wrangled_table.RDS from script 02.
+                           Must be a relative path ending with a trailing slash.
+                           Example: data/
+<output_location_06>       Directory where categorical_feat_gap.RDS will be saved.
+                           Must be a relative path ending with a trailing slash.
+                           Example: results/
+<figure_storage_path>      Directory where categorical_feat_gap.png will be saved.
+                           Must be a relative path ending with a trailing slash.
+                           Example: results/
 " -> doc
 
 library(docopt)
@@ -53,9 +57,32 @@ categorical_plotter <- function(output_location_from_02, output_to_location_06, 
     left_join(df_model |> count(is_free, name = "class_total"), by = "is_free") |>
     mutate(rate = n / class_total)
 
-  cat_gap <- compute_category_gap(df_model)
+  cat_gap <- cat_prev |>
+    select(is_free, category, rate) |>
+    pivot_wider(names_from = is_free, values_from = rate, values_fill = 0) |>
+    mutate(gap = Free - Paid) |>
+    arrange(desc(abs(gap))) |>
+    slice_head(n = 12) |>
+    mutate(
+      direction = if_else(gap > 0, "More Free", "More Paid"),
+      category = str_replace(category, "^cat_", "") |>
+        str_replace_all("_", " ") |>
+        str_to_title(),
+      category = reorder(category, gap)
+    )
 
-  categorical_feat_gap <- plot_category_gap(cat_gap, top_n = 12)
+  categorical_feat_gap <- ggplot(cat_gap, aes(x = category, y = gap, fill = direction)) +
+    geom_col() +
+    coord_flip() +
+    scale_y_continuous(labels = percent_format()) +
+    scale_fill_manual(values = c("More Free" = "#4DBBEE", "More Paid" = "#E87040"),
+                      name = NULL) +
+    labs(
+      title = "Category Prevalence Gap: Free vs Paid Games",
+      subtitle = "Positive = more common in free games; Negative = more common in paid games",
+      x = NULL,
+      y = "Rate difference (Free − Paid)"
+    )
 
   saveRDS(categorical_feat_gap, file = paste(output_to_location_06, 'categorical_feat_gap.RDS', sep = ''))
   ggsave(categorical_feat_gap, file = paste(figure_storage_path, 'categorical_feat_gap.png', sep = ''))

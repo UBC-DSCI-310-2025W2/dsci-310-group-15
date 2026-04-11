@@ -13,8 +13,8 @@ results:
 
 #data
 
-data/games_sample.RDS: scripts/01_download-data.R | data
-	Rscript scripts/01_download-data.R input_url data/
+data/games_sample.RDS: scripts/01_download-data.R 
+	Rscript scripts/01_download-data.R data/
 
 
 data/wrangled_table.RDS data/wrangled_table.csv: \
@@ -47,6 +47,19 @@ results/evaluation_metrics_table.csv results/feature_importances_table.csv: \
 
 # reports
 
+report:
+	reports/steam_full_analysis.qmd \
+	results/class_distribution_plot.png \
+	results/numeric_feature_distributions.png \
+	results/target_by_release_binary.png \
+	results/categorical_feat_gap.png \
+	results/roc_curve.png \
+	results/confusion_matrix.png \
+	results/evaluation_metrics_table.csv \
+	results/feature_importances_table.csv
+	quarto render reports/steam_full_analysis.qmd --to html \
+	quarto render reports/steam_full_analysis.qmd --to pdf
+
 reports/steam_full_analysis.html: \
 	reports/steam_full_analysis.qmd \
 	results/class_distribution_plot.png \
@@ -58,6 +71,7 @@ reports/steam_full_analysis.html: \
 	results/evaluation_metrics_table.csv \
 	results/feature_importances_table.csv
 	quarto render reports/steam_full_analysis.qmd --to html
+	
 
 reports/steam_full_analysis.pdf: \
 	reports/steam_full_analysis.qmd \

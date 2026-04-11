@@ -1,14 +1,18 @@
 "
 Looks at the target variable using different plots to explore other ways of representing the class imbalance.
 
-File path should always be relative and end with a backslash.
-
-Usage: scripts/05_additional-target-summary.R <output_location_from_02> <output_location_05> <figure_storage_path>
+Usage: scripts/05_additional-target-summary-plots.R <output_location_from_02> <output_location_05> <figure_storage_path>
 
 Options:
-<output_location_from_02> location of the output for the tidied data (script 2) was stored.
-<output_to_location_05> location where the output for this script will be stored.
-<figure_storage_path> location where the .png of the plot will be stored.
+<output_location_from_02>  Directory containing wrangled_table.RDS from script 02.
+                           Must be a relative path ending with a trailing slash.
+                           Example: data/
+<output_location_05>       Directory where target_by_release_binary.RDS will be saved.
+                           Must be a relative path ending with a trailing slash.
+                           Example: results/
+<figure_storage_path>      Directory where target_by_release_binary.png will be saved.
+                           Must be a relative path ending with a trailing slash.
+                           Example: results/
 " -> doc
 
 library(docopt)
@@ -46,7 +50,13 @@ additional_target_plots <- function(output_location_from_02, output_location_05,
     filter(release_year > 0) |>
     count(release_year, is_free)
 
-  p_release <- plot_release_year_by_class(df_model)
+  p_release <- ggplot(release_by_class, aes(x = release_year, y = n, fill = is_free)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("Free" = "#4DBBEE", "Paid" = "#E87040"),
+                      name = "Game Type") +
+    labs(title = "Number of Games Released per Year by Class",
+         x = "Release Year", y = "Count") +
+    theme(legend.position = "right")
 
   binary_rates <- df_model |>
     group_by(is_free) |>
@@ -57,7 +67,14 @@ additional_target_plots <- function(output_location_from_02, output_location_05,
     ) |>
     pivot_longer(cols = -is_free, names_to = "feature", values_to = "rate")
 
-  p_binary <- plot_binary_feature_rates()
+  p_binary <- ggplot(binary_rates, aes(x = feature, y = rate, fill = is_free)) +
+    geom_col(position = "dodge") +
+    scale_y_continuous(labels = percent_format()) +
+    scale_fill_manual(values = c("Free" = "#4DBBEE", "Paid" = "#E87040"),
+                      name = "Game Type") +
+    labs(title = "Binary Feature Rates by Class",
+         x = "Feature", y = "Proportion of Games") +
+    theme(legend.position = "right")
 
   target_by_release_binary <- p_release / p_binary
 

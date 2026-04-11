@@ -4,6 +4,10 @@ author: "Group 15: Buyang Daffa, Cathy Zhang, Elaine Tao, Thê Quach"
 format:
   html:
     toc: true
+execute:
+  echo: false
+  message: false
+  warning: false
 bibliography: references.bib
 editor: source
 ---
