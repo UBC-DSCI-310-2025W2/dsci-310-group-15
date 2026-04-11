@@ -280,14 +280,14 @@ validate_modeling_table <- function(
     pointblank::col_is_character(columns = c("game_name", "developer_name", "publisher_name")) %>%
     pointblank::col_is_factor(columns = c("is_free", "game_type")) %>%
     pointblank::col_is_logical(
-      columns = c(
+      columns = dplyr::all_of(c(
         "windows_support",
         "mac_support",
         "linux_support",
         "has_dlc",
         "has_demo",
         category_columns
-      )
+      ))
     ) %>%
     pointblank::rows_complete(columns = c("game_id", "game_name")) %>%
     pointblank::col_vals_expr(
@@ -460,7 +460,7 @@ validate_training_correlations <- function(
       validate_required_columns(train_data, c(target_col, predictors), "train_data")
 
   train_data %>%
-    pointblank::col_exists(columns = c(target_col, dplyr::all_of(predictors))) %>%
+    pointblank::col_exists(columns = dplyr::any_of(c(target_col, dplyr::all_of(predictors)))) %>%
     pointblank::specially(
       fn = function(x) {
         max_abs_target_correlation(

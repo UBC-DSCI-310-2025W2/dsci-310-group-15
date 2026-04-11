@@ -22,6 +22,7 @@ select_model_predictors <- function(data, category_pattern = "^cat_") {
     "n_categories"
   )
   category_predictors <- grep(category_pattern, names(data), value = TRUE)
+  category_predictors <- setdiff(category_predictors, c("cat_game_demo", "cat_downloadable_content"))
   predictors <- c(base_predictors, category_predictors)
 
   validate_required_columns(data, predictors, "data")

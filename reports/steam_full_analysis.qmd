@@ -73,7 +73,10 @@ developer/publisher metadata missingness is recorded as a warning because those 
 are not model predictors.
 
 Correlation diagnostics are run only on the training split after stratified sampling.
-This avoids using held-out test-set relationships to guide modeling decisions. -->
+This avoids using held-out test-set relationships to guide modeling decisions. 
+
+TODO 
+note that we removed perfectly (or almost perfectly, like 99.95% collinear predictors, cat_game_demo and cat_downloadable_content) -->
 
 <!-- ```{r}
 #| label: tbl-validation-summary
