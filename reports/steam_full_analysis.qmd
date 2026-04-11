@@ -65,7 +65,7 @@ with sensible defaults, keeping data loss below 10%.
 
 ## Data Validation
 
-The pipeline runs data validation before the wrangled table is used for plots or
+<!-- The pipeline runs data validation before the wrangled table is used for plots or
 modeling. Structural checks fail the pipeline when the source file format, required
 columns, empty observations, required missingness, data types, duplicates, value
 ranges, category levels, or target distribution do not match expectations. Optional
@@ -73,9 +73,9 @@ developer/publisher metadata missingness is recorded as a warning because those 
 are not model predictors.
 
 Correlation diagnostics are run only on the training split after stratified sampling.
-This avoids using held-out test-set relationships to guide modeling decisions.
+This avoids using held-out test-set relationships to guide modeling decisions. -->
 
-```{r}
+<!-- ```{r}
 #| label: tbl-validation-summary
 #| tbl-cap: "Data validation check summary by pipeline stage."
 validation_summary <- bind_rows(
@@ -86,7 +86,7 @@ validation_summary <- bind_rows(
   arrange(stage, status)
 
 kable(validation_summary)
-```
+``` -->
 
 ## Exploratory Data Analysis
 

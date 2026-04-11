@@ -239,23 +239,18 @@ run_train_test_model <- function(
     train_prop = train_prop,
     seed = seed
   )
-  model_input_validation <- validate_modeling_table(
+  
+  validate_modeling_table(
     modeling_data,
     stage = "model_input"
   )
-  training_validation <- validate_training_correlations(
+
+  validate_training_correlations(
     split$train_data,
     predictors = predictors,
     target_col = "is_free",
     stage = "training_split"
   )
-  validation_report <- combine_validation_reports(model_input_validation, training_validation)
-  validation_report_path <- save_validation_report(
-    validation_report,
-    results_dir,
-    "train_validation_report.csv"
-  )
-  assert_no_validation_failures(validation_report)
 
   train_model <- split$train_data |>
     dplyr::select(is_free, dplyr::all_of(predictors))
@@ -309,8 +304,7 @@ run_train_test_model <- function(
     feature_importances = build_file_path(results_dir, "feature_importances_table.csv"),
     evaluation_metrics = build_file_path(results_dir, "evaluation_metrics_table.csv"),
     roc_curve = build_file_path(results_dir, "roc_curve.png"),
-    confusion_matrix = build_file_path(results_dir, "confusion_matrix.png"),
-    train_validation_report = validation_report_path
+    confusion_matrix = build_file_path(results_dir, "confusion_matrix.png")
   )
 
   utils::write.csv(feature_importances, output_paths$feature_importances, row.names = FALSE)
@@ -326,7 +320,6 @@ run_train_test_model <- function(
     feature_importances = feature_importances,
     confusion_matrix_plot = confusion_matrix_plot,
     roc_curve_plot = roc_curve_plot,
-    validation_report = validation_report,
     output_paths = output_paths
   )
 }

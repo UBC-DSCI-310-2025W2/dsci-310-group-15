@@ -17,7 +17,7 @@ data/games_sample.RDS: scripts/01_download-data.R | data
 	Rscript scripts/01_download-data.R data/
 
 
-data/wrangled_table.RDS data/wrangled_table.csv data/data_validation_report.csv: \
+data/wrangled_table.RDS data/wrangled_table.csv: \
 	scripts/02_data-preprocessing.R \
 	R/script_utils.R \
 	R/io_validation_utils.R \
@@ -57,8 +57,7 @@ results/categorical_feat_gap.png: \
 	Rscript scripts/06_categorical-features-plots.R data/ results/ results/
 
 results/roc_curve.png results/confusion_matrix.png \
-results/evaluation_metrics_table.csv results/feature_importances_table.csv \
-results/train_validation_report.csv: \
+results/evaluation_metrics_table.csv results/feature_importances_table.csv: \
 	scripts/07_train-test-model.R \
 	R/script_utils.R \
 	R/io_validation_utils.R \
@@ -80,9 +79,7 @@ reports/steam_full_analysis.html: \
 	results/roc_curve.png \
 	results/confusion_matrix.png \
 	results/evaluation_metrics_table.csv \
-	results/feature_importances_table.csv \
-	data/data_validation_report.csv \
-	results/train_validation_report.csv
+	results/feature_importances_table.csv 
 	quarto render reports/steam_full_analysis.qmd --to html
 	
 
@@ -95,15 +92,13 @@ reports/steam_full_analysis.pdf: \
 	results/roc_curve.png \
 	results/confusion_matrix.png \
 	results/evaluation_metrics_table.csv \
-	results/feature_importances_table.csv \
-	data/data_validation_report.csv \
-	results/train_validation_report.csv
+	results/feature_importances_table.csv 
 	quarto render reports/steam_full_analysis.qmd --to pdf
 
 # clean
 
 clean:
-	rm -f data/games_sample.RDS data/wrangled_table.RDS data/wrangled_table.csv data/data_validation_report.csv
+	rm -f data/games_sample.RDS data/wrangled_table.RDS data/wrangled_table.csv
 	rm -rf results
 	rm -f reports/steam_full_analysis.html reports/steam_full_analysis.pdf
 
