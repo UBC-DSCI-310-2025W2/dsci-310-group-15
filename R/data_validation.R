@@ -460,7 +460,7 @@ validate_training_correlations <- function(
       validate_required_columns(train_data, c(target_col, predictors), "train_data")
 
   train_data %>%
-    pointblank::col_exists(columns = dplyr::any_of(c(target_col, dplyr::all_of(predictors)))) %>%
+    pointblank::col_exists(columns = dplyr::all_of(c(target_col, predictors))) %>%
     pointblank::specially(
       fn = function(x) {
         max_abs_target_correlation(
