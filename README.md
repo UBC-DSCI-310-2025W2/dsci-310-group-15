@@ -144,6 +144,21 @@ cd dsci-310-group-15
 Required R version: **4.5.2**  
 Download from: <https://cran.r-project.org/>
 
+Each pipeline step can also be run directly from the project root:
+
+```bash
+Rscript scripts/01_download-data.R <input_url> <output_data_dir>
+Rscript scripts/02_data-preprocessing.R <input_data_dir> <output_data_dir> <table_output_dir>
+Rscript scripts/03_class-imbalance-check.R <input_data_dir> <plot_object_dir> <figure_dir>
+Rscript scripts/04_numeric-features-distributions.R <input_data_dir> <plot_object_dir> <figure_dir>
+Rscript scripts/05_additional-target-summary-plots.R <input_data_dir> <plot_object_dir> <figure_dir>
+Rscript scripts/06_categorical-features-plots.R <input_data_dir> <plot_object_dir> <figure_dir>
+Rscript scripts/07_train-test-model.R <input_data_dir> <results_dir>
+```
+
+To clear all the outputs (figures; html and pdf reports), run:
+```bash
+make clean
 Required R packages (exact versions):
 
 | Package | Version |

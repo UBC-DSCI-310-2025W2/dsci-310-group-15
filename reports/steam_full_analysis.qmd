@@ -4,6 +4,7 @@ author: "Group 15: Buyang Daffa, Cathy Zhang, Elaine Tao, Thê Quach"
 format:
   html:
     toc: true
+    embed-resources: true
 execute:
   echo: false
   message: false
@@ -58,7 +59,7 @@ and Quarto (@Allaire_Quarto_2022).
 
 Data were loaded, cleaned, and feature-engineered using `scripts/02_data-preprocessing.R`.
 Column names were simplified, `is_free` was recoded as a two-level factor, platform
-flags were cast to logical and summed into `platform_count`, and the top 20 most-frequent
+flags were cast to logical and summed into `platform_count`, and the top 15 most-frequent
 game categories were one-hot encoded as indicator columns. Missing values were imputed
 with sensible defaults, keeping data loss below 10%.
 
@@ -111,8 +112,8 @@ kable(metrics_tbl)
 ```
 
 The model improves on the baseline by 16 percentage points. Specificity is near-perfect
-at 0.990, while sensitivity reaches 0.838. Cohen's Kappa of 0.867 confirms performance
-well beyond chance (@cadili2015cohens). Balanced accuracy of 0.914 indicates the model
+at 0.991, while sensitivity reaches 0.832. Cohen's Kappa of 0.867 confirms performance
+well beyond chance (@cadili2015cohens). Balanced accuracy of 0.912 indicates the model
 handles both classes reasonably despite the imbalance (@desilva2024balanced).
 
 In @fig-roc we show the ROC curve, which hugs the top-left corner (AUC = 0.923),
@@ -140,7 +141,7 @@ kable(varimp_tbl)
 # Discussion
 
 The logistic regression classifier achieves strong overall performance (accuracy 0.959,
-AUC 0.923), but the asymmetry between sensitivity (0.838) and specificity (0.990)
+AUC 0.923), but the asymmetry between sensitivity (0.832) and specificity (0.991)
 warrants careful interpretation. The model is more reliable at identifying paid games
 than free ones — a consequence of the 4:1 class imbalance in the training data.
 
