@@ -155,7 +155,7 @@ run_data_preprocessing <- function(
 
   rds_path <- build_file_path(output_data_dir, "wrangled_table.RDS")
   csv_path <- build_file_path(table_output_dir, "wrangled_table.csv")
-  games_data <- read_validated_rds_data_frame(
+  games_data <- load_validated_rds_data_frame(
     input_path,
     data_name = "games_sample"
   )
@@ -171,7 +171,7 @@ run_data_preprocessing <- function(
   if (needs_refresh) {
     modeling_table <- build_modeling_table(games_data, top_n_categories = top_n_categories)
   } else {
-    modeling_table <- read_validated_rds_data_frame(
+    modeling_table <- load_validated_rds_data_frame(
       rds_path,
       data_name = "wrangled_table"
     )

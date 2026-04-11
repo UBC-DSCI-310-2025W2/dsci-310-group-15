@@ -6,7 +6,7 @@
 #' @param data_name Name used in report details.
 #'
 #' @return A dataframe
-read_validated_rds_data_frame <- function(path, data_name = "data") {
+load_validated_rds_data_frame <- function(path, data_name = "data") {
   assert_single_string(path, "path")
   assert_single_string(data_name, "data_name")
 
