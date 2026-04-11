@@ -71,6 +71,26 @@ flags were cast to logical and summed into `platform_count`, and the top 20 most
 game categories were one-hot encoded as indicator columns. Missing values were imputed
 with sensible defaults, keeping data loss below 10%.
 
+## Data Validation
+Data validation was carried out by a pointblank pipeline. The pipeline checks that the following are as expected: 
+- source file format
+- required columns 
+- empty observations
+- missingness
+- data types
+- duplicates 
+- value ranges 
+- category levels 
+- target distributions
+
+Optional developer/publisher metadata missingness is recorded as a warning because those fields
+are not model predictors.
+
+Correlation diagnostics are run only on the training split after stratified sampling.
+This avoids using held-out test-set relationships to guide modelling decisions. After running correlation diagnostics, we decided to remove two engineered predictors (cat_game_demo and cat_downloadable_content )that were perfectly or almost perfectly(99.95%) collinear. 
+
+
+
 ## Exploratory Data Analysis
 
 The dataset is heavily imbalanced: paid games account for 79.4% of records and free
@@ -101,6 +121,7 @@ games tilt slightly toward free — consistent with free-to-play titles relying 
 player pools for engagement.
 
 ![Difference in category prevalence between free and paid games.](../results/categorical_feat_gap.png){#fig-cat-analysis}
+
 
 ## Modelling
 
