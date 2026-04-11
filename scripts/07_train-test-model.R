@@ -22,7 +22,7 @@ if (!file.exists(script_utils_path)) {
 source(script_utils_path)
 
 project_root <- find_project_root(script_dir)
-load_required_packages(c("docopt", "dplyr", "tibble", "ggplot2", "scales", "caret", "pROC"))
+load_required_packages(c("docopt", "dplyr", "tibble", "ggplot2", "scales", "caret", "pROC", "pointblank"))
 opt <- docopt::docopt(usage_doc)
 
 source_project_file(project_root, "R", "io_validation_utils.R")
