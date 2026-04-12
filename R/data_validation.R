@@ -7,8 +7,8 @@
 #'
 #' @return A dataframe
 load_validated_rds_data_frame <- function(path, data_name = "data") {
-  assert_single_string(path, "path")
-  assert_single_string(data_name, "data_name")
+  processandplotr::assert_single_string(path, "path")
+  processandplotr::assert_single_string(data_name, "data_name")
 
   has_rds_extension <- grepl("\\.RDS$", path, ignore.case = TRUE)
   path_exists <- file.exists(path)
@@ -363,7 +363,7 @@ safe_abs_cor <- function(x, y) {
 #' 
 #' @return a dataframe
 training_feature_matrix <- function(train_data, predictors) {
-  validate_required_columns(train_data, predictors, "train_data")
+  processandplotr::validate_required_columns(train_data, predictors, "train_data")
 
   feature_df <- train_data[, predictors, drop = FALSE]
   mm <- stats::model.matrix(~ . - 1, data = feature_df)
@@ -384,7 +384,7 @@ max_abs_target_correlation <- function(
     predictors,
     target_col = "is_free",
     positive_class = "Free") {
-  validate_required_columns(train_data, c(target_col, predictors), "train_data")
+  processandplotr::validate_required_columns(train_data, c(target_col, predictors), "train_data")
 
   x_df <- training_feature_matrix(train_data, predictors)
   y <- as.numeric(as.character(train_data[[target_col]]) == positive_class)
@@ -409,7 +409,7 @@ max_abs_target_correlation <- function(
 #' 
 #' @return a number 
 max_abs_feature_correlation <- function(train_data, predictors) {
-  validate_required_columns(train_data, predictors, "train_data")
+  processandplotr::validate_required_columns(train_data, predictors, "train_data")
 
   x_df <- training_feature_matrix(train_data, predictors)
 
@@ -462,7 +462,7 @@ validate_training_correlations <- function(
         stop("`predictors` must be a non-empty character vector.", call. = FALSE)
       }
       
-      validate_required_columns(train_data, c(target_col, predictors), "train_data")
+      processandplotr::validate_required_columns(train_data, c(target_col, predictors), "train_data")
 
   train_data %>%
     pointblank::col_exists(columns = dplyr::all_of(c(target_col, predictors))) %>%

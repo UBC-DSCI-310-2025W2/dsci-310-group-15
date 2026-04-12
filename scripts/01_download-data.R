@@ -25,10 +25,9 @@ if (!file.exists(script_utils_path)) {
 source(script_utils_path)
 
 project_root <- find_project_root(script_dir)
-load_required_packages(c("docopt"))
+load_required_packages(c("docopt", "processandplotr"))
 opt <- docopt::docopt(usage_doc)
 
-source_project_file(project_root, "R", "io_validation_utils.R")
 source_project_file(project_root, "R", "download_data.R")
 
 dataset_url <- paste0(

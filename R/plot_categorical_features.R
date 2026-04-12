@@ -154,7 +154,7 @@ run_categorical_features_plot <- function(
     output_object_dir,
     output_figure_dir,
     input_filename = "wrangled_table.RDS") {
-  modeling_data <- load_wrangled_table(input_data_dir, input_filename)
+  modeling_data <- processandplotr::load_wrangled_table(input_data_dir, input_filename)
   category_gap <- compute_category_prevalence_gap(modeling_data)
   category_gap_plot <- build_category_gap_plot(category_gap)
   saved_paths <- save_category_gap_outputs(

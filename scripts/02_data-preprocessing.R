@@ -23,12 +23,10 @@ if (!file.exists(script_utils_path)) {
 source(script_utils_path)
 
 project_root <- find_project_root(script_dir)
-load_required_packages(c("docopt", "dplyr", "tidyr", "purrr", "lubridate", "forcats", "janitor", "pointblank"))
+load_required_packages(c("docopt", "dplyr", "tidyr", "purrr", "lubridate", "forcats", "janitor", "pointblank", "processandplotr"))
 opt <- docopt::docopt(usage_doc)
 
-source_project_file(project_root, "R", "io_validation_utils.R")
 source_project_file(project_root, "R", "data_validation.R")
-source_project_file(project_root, "R", "extract_values.R")
 source_project_file(project_root, "R", "preprocess_data.R")
 
 invisible(run_data_preprocessing(

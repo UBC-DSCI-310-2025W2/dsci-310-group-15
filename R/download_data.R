@@ -41,7 +41,7 @@ is_gzip_file <- function(path) {
 #'
 #' @return The URL that successfully downloaded a valid gzip file.
 download_valid_dataset <- function(dest_path, urls) {
-  assert_single_string(dest_path, "dest_path")
+  processandplotr::assert_single_string(dest_path, "dest_path")
 
   if (!is.character(urls) || length(urls) == 0L || any(!nzchar(urls))) {
     stop("`urls` must be a non-empty character vector.", call. = FALSE)
@@ -86,8 +86,8 @@ download_valid_dataset <- function(dest_path, urls) {
 #'
 #' @return Path to the decompressed JSON file.
 decompress_gzip_to_json <- function(gzip_path, json_path) {
-  assert_single_string(gzip_path, "gzip_path")
-  assert_single_string(json_path, "json_path")
+  processandplotr::assert_single_string(gzip_path, "gzip_path")
+  processandplotr::assert_single_string(json_path, "json_path")
 
   in_con <- gzfile(gzip_path, open = "rb")
   out_con <- file(json_path, open = "wb")
@@ -131,21 +131,21 @@ run_data_download <- function(
     raw_data_dir = file.path(output_data_dir, "raw"),
     dataset_filename = "steam_2025_5k-dataset-games_20250831.json.gz",
     fallback_urls = character(0)) {
-  assert_single_string(input_url, "input_url")
-  assert_single_string(output_data_dir, "output_data_dir")
-  assert_single_string(raw_data_dir, "raw_data_dir")
-  assert_single_string(dataset_filename, "dataset_filename")
+  processandplotr::assert_single_string(input_url, "input_url")
+  processandplotr::assert_single_string(output_data_dir, "output_data_dir")
+  processandplotr::assert_single_string(raw_data_dir, "raw_data_dir")
+  processandplotr::assert_single_string(dataset_filename, "dataset_filename")
 
   if (!grepl("^https?://", input_url)) {
     stop("`input_url` must be an HTTP or HTTPS URL.", call. = FALSE)
   }
 
-  ensure_directory_exists(output_data_dir, "output_data_dir")
-  ensure_directory_exists(raw_data_dir, "raw_data_dir")
+  processandplotr::ensure_directory_exists(output_data_dir, "output_data_dir")
+  processandplotr::ensure_directory_exists(raw_data_dir, "raw_data_dir")
 
-  raw_path <- build_file_path(raw_data_dir, dataset_filename)
-  json_copy_path <- build_file_path(output_data_dir, "games_sample.json")
-  rds_path <- build_file_path(output_data_dir, "games_sample.RDS")
+  raw_path <- processandplotr::build_file_path(raw_data_dir, dataset_filename)
+  json_copy_path <- processandplotr::build_file_path(output_data_dir, "games_sample.json")
+  rds_path <- processandplotr::build_file_path(output_data_dir, "games_sample.RDS")
   dataset_urls <- unique(c(input_url, fallback_urls))
 
   if (!file.exists(raw_path) || is_lfs_pointer(raw_path) || !is_gzip_file(raw_path)) {

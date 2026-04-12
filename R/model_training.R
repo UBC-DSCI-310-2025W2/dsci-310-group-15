@@ -25,7 +25,7 @@ select_model_predictors <- function(data, category_pattern = "^cat_") {
   category_predictors <- setdiff(category_predictors, c("cat_game_demo", "cat_downloadable_content"))
   predictors <- c(base_predictors, category_predictors)
 
-  validate_required_columns(data, predictors, "data")
+  processandplotr::validate_required_columns(data, predictors, "data")
   predictors
 }
 
@@ -42,7 +42,7 @@ create_stratified_train_test_split <- function(
     target_col = "is_free",
     train_prop = 0.8,
     seed = 123) {
-  validate_required_columns(data, target_col, "data")
+  processandplotr::validate_required_columns(data, target_col, "data")
 
   if (!is.numeric(train_prop) || length(train_prop) != 1L ||
       is.na(train_prop) || train_prop <= 0 || train_prop >= 1) {
@@ -85,7 +85,7 @@ evaluate_logistic_model <- function(
     test_model,
     target_col = "is_free",
     positive_class = "Free") {
-  validate_required_columns(test_model, target_col, "test_model")
+  processandplotr::validate_required_columns(test_model, target_col, "test_model")
 
   prob_positive <- predict(fit_glm, newdata = test_model, type = "prob")[[positive_class]]
   pred_class <- factor(
@@ -231,8 +231,8 @@ run_train_test_model <- function(
     input_filename = "wrangled_table.RDS",
     train_prop = 0.8,
     seed = 123) {
-  modeling_data <- load_wrangled_table(input_data_dir, input_filename)
-  ensure_directory_exists(results_dir, "results_dir")
+  modeling_data <- processandplotr::load_wrangled_table(input_data_dir, input_filename)
+  processandplotr::ensure_directory_exists(results_dir, "results_dir")
   predictors <- select_model_predictors(modeling_data)
   split <- create_stratified_train_test_split(
     modeling_data,
@@ -310,11 +310,11 @@ run_train_test_model <- function(
   feature_importances <- extract_feature_importances(fit_glm, top_n = 15L)
 
   output_paths <- list(
-    feature_importances = build_file_path(results_dir, "feature_importances_table.csv"),
-    evaluation_metrics = build_file_path(results_dir, "evaluation_metrics_table.csv"),
-    training_validation = build_file_path(results_dir, "train_validation_report.csv"),
-    roc_curve = build_file_path(results_dir, "roc_curve.png"),
-    confusion_matrix = build_file_path(results_dir, "confusion_matrix.png")
+    feature_importances = processandplotr::build_file_path(results_dir, "feature_importances_table.csv"),
+    evaluation_metrics = processandplotr::build_file_path(results_dir, "evaluation_metrics_table.csv"),
+    training_validation = processandplotr::build_file_path(results_dir, "train_validation_report.csv"),
+    roc_curve = processandplotr::build_file_path(results_dir, "roc_curve.png"),
+    confusion_matrix = processandplotr::build_file_path(results_dir, "confusion_matrix.png")
   )
 
   utils::write.csv(training_validation_report, output_paths$training_validation, row.names = FALSE)

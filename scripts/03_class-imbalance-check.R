@@ -23,13 +23,10 @@ if (!file.exists(script_utils_path)) {
 source(script_utils_path)
 
 project_root <- find_project_root(script_dir)
-load_required_packages(c("docopt", "dplyr", "ggplot2", "scales"))
+load_required_packages(c("docopt", "dplyr", "ggplot2", "scales", "processandplotr"))
 opt <- docopt::docopt(usage_doc)
 
-source_project_file(project_root, "R", "io_validation_utils.R")
-source_project_file(project_root, "R", "plot_class_imbalance.R")
-
-invisible(run_class_imbalance_check(
+invisible(processandplotr::run_class_imbalance_check(
   input_data_dir = opt$input_data_dir,
   output_object_dir = opt$plot_object_dir,
   output_figure_dir = opt$figure_dir
