@@ -1,142 +1,38 @@
 "
-Preprocesses the downloaded sample file.
-Handles the nested data types, renames certain variables for better readability, and removes NAs.
+Preprocess the downloaded Steam sample into the model-ready wrangled table.
 
-Usage: scripts/02_data-preprocessing.R <games_raw_data_save_location> <games_wrangled_data_save_location> <figures_storage_path>
+Usage:
+  scripts/02_data-preprocessing.R <input_data_dir> <output_data_dir> <table_output_dir>
 
 Options:
-<games_raw_data_save_location> location of the raw from 01_download-data.R is stored.
-<games_wrangled_data_save_location> location where wrangled_table.RDS will be stored.
-<figures_storage_path> location where wrangled_table.csv will be stored.
-" -> doc
+  <input_data_dir>    Directory containing games_sample.RDS from script 01.
+  <output_data_dir>   Directory where wrangled_table.RDS will be saved.
+  <table_output_dir>  Directory where wrangled_table.csv will be saved.
+" -> usage_doc
 
-library(docopt)
-required_packages <- c(
-  "tidyverse", "lubridate",
-  "scales", "patchwork", "purrr", "janitor", "knitr"
-)
-
-invisible(lapply(required_packages, library, character.only = TRUE))
-
-source("R/extract_values.R")
-
-opt <- docopt(doc)
-
-preprocess <- function(games_raw_data_save_location, games_wrangled_data_save_location, figures_storage_path){
-  df <- readRDS(paste(games_raw_data_save_location, 'games_sample.RDS', sep = ''))
-
-  # ---- Cleaning and feature engineering ----
-
-  # extract_categories <- function(cat_obj) {
-  #   if (is.null(cat_obj) || length(cat_obj) == 0) return(character(0))
-
-  #   if (is.data.frame(cat_obj) && "description" %in% names(cat_obj)) {
-  #     return(as.character(cat_obj$description))
-  #   }
-
-  #   if (is.list(cat_obj)) {
-  #     vals <- purrr::map_chr(cat_obj, function(x) {
-  #       if (is.list(x) && "description" %in% names(x)) {
-  #         as.character(x[["description"]])
-  #       } else {
-  #         NA_character_
-  #       }
-  #     })
-  #     return(vals[!is.na(vals)])
-  #   }
-
-  #   character(0)
-  # }
-
-  flat_data <- df |>
-    rename(
-      game_id = appid,
-      game_name = name_from_applist,
-      required_age = app_details.data.required_age,
-      is_free = app_details.data.is_free,
-      game_type = app_details.data.type,
-      release_date = app_details.data.release_date.date,
-      windows_support = app_details.data.platforms.windows,
-      mac_support = app_details.data.platforms.mac,
-      linux_support = app_details.data.platforms.linux,
-      categories = app_details.data.categories,
-      dlc = app_details.data.dlc,
-      demos = app_details.data.demos,
-      developers = app_details.data.developers,
-      publishers = app_details.data.publishers
-    ) |>
-    mutate(
-      is_free = factor(is_free, levels = c(TRUE, FALSE), labels = c("Free", "Paid")),
-      required_age = suppressWarnings(as.integer(required_age)),
-      game_type = as.factor(game_type),
-      release_date_parsed = suppressWarnings(mdy(release_date)),
-      release_year = year(release_date_parsed),
-      windows_support = as.logical(windows_support),
-      mac_support = as.logical(mac_support),
-      linux_support = as.logical(linux_support),
-      platform_count = as.integer(replace_na(windows_support, FALSE)) +
-        as.integer(replace_na(mac_support, FALSE)) +
-        as.integer(replace_na(linux_support, FALSE)),
-      has_dlc = purrr::map_lgl(dlc, ~ length(.x) > 0),
-      has_demo = purrr::map_lgl(demos, ~ length(.x) > 0),
-      category_list = purrr::map(categories, extract_values),
-      n_categories = purrr::map_int(category_list, length),
-      developer_name = purrr::map_chr(
-        developers,
-        ~ if (length(.x) > 0) as.character(.x[[1]]) else NA_character_
-      ),
-      publisher_name = purrr::map_chr(
-        publishers,
-        ~ if (length(.x) > 0) as.character(.x[[1]]) else NA_character_
-      )
-    )
-
-  all_cats <- flat_data |>
-    select(game_id, category_list) |>
-    unnest(category_list) |>
-    rename(category = category_list)
-
-  top_categories <- all_cats |>
-    count(category, sort = TRUE) |>
-    slice_head(n = 15) |>
-    pull(category)
-
-  for (cat_name in top_categories) {
-    col_name <- paste0("cat_", janitor::make_clean_names(cat_name))
-    flat_data[[col_name]] <- purrr::map_lgl(flat_data$category_list, ~ cat_name %in% .x)
-  }
-
-  cat_cols <- grep("^cat_", names(flat_data), value = TRUE)
-
-  df_model <- flat_data |>
-    transmute(
-      game_id,
-      game_name,
-      is_free,
-      required_age = replace_na(required_age, 0L),
-      release_year = replace_na(release_year, -1L),
-      game_type = fct_na_value_to_level(game_type, level = "unknown"),
-      windows_support = replace_na(windows_support, FALSE),
-      mac_support = replace_na(mac_support, FALSE),
-      linux_support = replace_na(linux_support, FALSE),
-      platform_count = replace_na(platform_count, 0L),
-      has_dlc = replace_na(has_dlc, FALSE),
-      has_demo = replace_na(has_demo, FALSE),
-      n_categories = replace_na(n_categories, 0L),
-      developer_name,
-      publisher_name,
-      across(all_of(cat_cols), ~ replace_na(.x, FALSE))
-    ) |>
-    filter(!is.na(is_free)) |>
-    distinct(game_id, .keep_all = TRUE)
-
-  cat("Modeling table:", nrow(df_model), "rows x", ncol(df_model), "columns
-  ")
-
-  write.csv(df_model, paste(figures_storage_path, 'wrangled_table.csv', sep = ''), row.names = FALSE)
-
-  saveRDS(df_model, paste(games_wrangled_data_save_location, 'wrangled_table.RDS', sep = ''))
-
+script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
+script_dir <- if (length(script_arg) == 1L) {
+  dirname(normalizePath(sub("^--file=", "", script_arg), winslash = "/", mustWork = TRUE))
+} else {
+  getwd()
 }
+script_utils_path <- file.path(script_dir, "..", "R", "script_utils.R")
+if (!file.exists(script_utils_path)) {
+  script_utils_path <- file.path(getwd(), "R", "script_utils.R")
+}
+source(script_utils_path)
 
-preprocess(opt$games_raw_data_save_location, opt$games_wrangled_data_save_location, opt$figures_storage_path)
+project_root <- find_project_root(script_dir)
+load_required_packages(c("docopt", "dplyr", "tidyr", "purrr", "lubridate", "forcats", "janitor"))
+opt <- docopt::docopt(usage_doc)
+
+source_project_file(project_root, "R", "io_validation_utils.R")
+source_project_file(project_root, "R", "extract_values.R")
+source_project_file(project_root, "R", "preprocess_data.R")
+
+invisible(run_data_preprocessing(
+  input_data_dir = opt$input_data_dir,
+  output_data_dir = opt$output_data_dir,
+  table_output_dir = opt$table_output_dir,
+  force = FALSE
+))

@@ -3,7 +3,7 @@
 
 **CONTRIBUTORS:** Buyang Daffa, The Quach, Elaine Tao, Jinghan Zhang
 
-___
+---
 
 ## Overview
 
@@ -12,6 +12,7 @@ Steam is a gaming storefront published by Valve and hosts well over 30,000 games
 Our analysis determined that games that implemented family sharing, were single- or multiplayer, had Steam leaderboards, and were demos were most likely to be free games. By far the most influential category was whether the game had implemented family sharing.
 
 ## Project Structure
+
 ```text
 dsci-310-group-15/
 |-- .github/
@@ -64,92 +65,179 @@ dsci-310-group-15/
 `-- renv.lock
 ```
 
+---
 
-### Running the Data Analysis
+## Running the Analysis
 
-There are two ways to run this analysis.
+There are two ways to run this analysis: using Docker (recommended) or installing dependencies locally.
 
-#### 1. Using Docker
+### Method 1: Using Docker (Recommended)
 
-This project uses Docker to make the computational environment reproducible. The Docker image is defined by the `Dockerfile` in the root of the repository, and the image is automatically built and pushed to Docker Hub using the GitHub Actions workflow in `.github/workflows/publish_docker_image.yml`.
+Docker ensures the analysis runs in a fully reproducible environment with all dependencies pre-installed.
 
-First, clone this GitHub repository and navigate to the root directory:
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) must be installed and running.
+
+**Step 1 — Clone the repository:**
 
 ```bash
 git clone https://github.com/UBC-DSCI-310-2025W2/dsci-310-group-15.git
 cd dsci-310-group-15
 ```
 
-Then, build the docker image: 
+**Step 2 — Pull the pre-built image from Docker Hub:**
+
 ```bash
-docker build -t dsci310-project .
+docker pull thequach/dsci-310-group-15:latest
 ```
 
-Then, launch the container:
+> Alternatively, build the image locally from the `Dockerfile`:
+> ```bash
+> docker build -t thequach/dsci-310-group-15:latest .
+> ```
+> Note: this can take 10–20 minutes as R packages are compiled from source.
+
+**Step 3 — Launch the container, mounting the repository into it:**
+
 ```bash
-docker run --rm -it -p 8888:8888 -v "$(pwd)":/home/rstudio/dsci-310-group-15 dsci310-project
+docker run --rm -it \
+  -p 8888:8888 \
+  -v "$(pwd)":/home/rstudio/project \
+  -w /home/rstudio/project \
+  thequach/dsci-310-group-15:latest \
+  bash
 ```
 
-After launching the container, open Jupyter Lab in your browser through the link in the terminal: `http://localhost:8888`
+> **Windows (Command Prompt):** replace `$(pwd)` with `%cd%`  
+> **Windows (PowerShell):** replace `$(pwd)` with `${PWD}`
 
+This drops you into a `bash` shell inside the container, with the repository available at `/home/rstudio/project`.
 
-#### 2. Without using Docker
+**Step 4 — Run the full analysis pipeline inside the container:**
 
-To replicate the analysis, clone this GitHub repository, install the dependencies listed below, and run the analysis from the root directory of this project.
+```bash
+make all
+```
 
-###### Dependencies
-R programming language:
-* R (4.5.2)
+This generates:
+- All figures and tables in `results/`
+- The HTML and PDF reports in `reports/`
 
-R packages:
-* tidyverse (2.0.0)
-* jsonlite (2.0.0)
-* lubridate (1.9.5)
-* vip (0.4.5)
-* scales (1.4.0)
-* ggcorrplot (0.1.4.1)
-* patchwork (1.3.2)
-* purrr (1.1.0)
-* caret (7.0.1)
-* janitor (2.2.1)
-* pROC (1.19.0.1)
-* docopt (0.7.2)
-* testthat (3.3.2)
+**Step 5 — Exit the container when done:**
 
-### Data Analysis Pipeline With GNU Make
-This project's `Makefile` automates the data analysis. To render the outputs, make sure that you have cloned the repository and navigated to the root directory:
+```bash
+exit
+```
 
-``` bash
+---
+
+### Method 2: Running Locally (Without Docker)
+
+**Step 1 — Clone the repository:**
+
+```bash
 git clone https://github.com/UBC-DSCI-310-2025W2/dsci-310-group-15.git
 cd dsci-310-group-15
 ```
 
-Then, update the environment according to the docker instructions or running `renv::restore()`.
+**Step 2 — Install R and all required packages.**
 
-To generate the report (in html and pdf formats) and all the included figures, in the terminal, run:
+Required R version: **4.5.2**  
+Download from: <https://cran.r-project.org/>
+
+Each pipeline step can also be run directly from the project root:
+
 ```bash
-make all 
+Rscript scripts/01_download-data.R <input_url> <output_data_dir>
+Rscript scripts/02_data-preprocessing.R <input_data_dir> <output_data_dir> <table_output_dir>
+Rscript scripts/03_class-imbalance-check.R <input_data_dir> <plot_object_dir> <figure_dir>
+Rscript scripts/04_numeric-features-distributions.R <input_data_dir> <plot_object_dir> <figure_dir>
+Rscript scripts/05_additional-target-summary-plots.R <input_data_dir> <plot_object_dir> <figure_dir>
+Rscript scripts/06_categorical-features-plots.R <input_data_dir> <plot_object_dir> <figure_dir>
+Rscript scripts/07_train-test-model.R <input_data_dir> <results_dir>
 ```
-This command generates an html and pdf of the report, found in `reports/`, as well as all the figures and tables included in the report, found in `results/`. 
 
 To clear all the outputs (figures; html and pdf reports), run:
 ```bash
 make clean
+Required R packages (exact versions):
+
+| Package | Version |
+|---|---|
+| tidyverse | 2.0.0 |
+| jsonlite | 2.0.0 |
+| lubridate | 1.9.5 |
+| vip | 0.4.5 |
+| scales | 1.4.0 |
+| ggcorrplot | 0.1.4.1 |
+| patchwork | 1.3.2 |
+| purrr | 1.1.0 |
+| caret | 7.0.1 |
+| janitor | 2.2.1 |
+| pROC | 1.19.0.1 |
+| docopt | 0.7.2 |
+| knitr | 1.50 |
+| here | 1.0.1 |
+| testthat | 3.3.2 |
+
+The fastest way to install all packages at the correct versions is to restore the project's `renv` lockfile:
+
+```r
+install.packages("renv")
+renv::restore()
 ```
 
-### Running tests
+**Step 3 — Run the full analysis pipeline:**
+
+```bash
+make all
+```
+
+---
+
+## Makefile Targets
+
+| Target | Description |
+|---|---|
+| `make all` | Download data, run all scripts, render HTML and PDF reports |
+| `make clean` | Remove all generated outputs (results, rendered reports) |
+| `make test` | Run the full `testthat` test suite |
+
+---
+
+## Running Tests
+
 Unit tests are implemented with `testthat` in `tests/testthat/`.
 
-Run all tests:
+Run all tests via Make:
+
 ```bash
 make test
 ```
 
-Or run directly:
+Or run them directly from R:
+
 ```bash
 Rscript tests/testthat.R
 ```
 
+---
+
+## Script Reference
+
+Each script is run automatically by `make all`. The table below documents each script's arguments in case you want to run them individually. All paths must be **relative to the project root** and must end with a trailing `/`.
+
+| Script | Arguments | Example |
+|---|---|---|
+| `01_download-data.R` | `<output_dir>` — directory to save `games_sample.RDS` | `Rscript scripts/01_download-data.R data/` |
+| `02_data-preprocessing.R` | `<input_dir>` `<output_dir>` `<csv_dir>` — directories for input RDS, output RDS, and output CSV | `Rscript scripts/02_data-preprocessing.R data/ data/ data/` |
+| `03_class-imbalance-check.R` | `<input_dir>` `<rds_dir>` `<figure_dir>` | `Rscript scripts/03_class-imbalance-check.R data/ results/ results/` |
+| `04_numeric-features-distributions.R` | `<input_dir>` `<rds_dir>` `<figure_dir>` | `Rscript scripts/04_numeric-features-distributions.R data/ results/ results/` |
+| `05_additional-target-summary-plots.R` | `<input_dir>` `<rds_dir>` `<figure_dir>` | `Rscript scripts/05_additional-target-summary-plots.R data/ results/ results/` |
+| `06_categorical-features-plots.R` | `<input_dir>` `<rds_dir>` `<figure_dir>` | `Rscript scripts/06_categorical-features-plots.R data/ results/ results/` |
+| `07_train-test-model.R` | `<input_dir>` `<output_dir>` — directory containing `wrangled_table.RDS`, and directory to save results | `Rscript scripts/07_train-test-model.R data/ results/` |
+
+---
 
 ## License
+
 This project uses the **MIT License**. See `LICENSE` for more information.
