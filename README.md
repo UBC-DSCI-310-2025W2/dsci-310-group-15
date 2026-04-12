@@ -60,6 +60,7 @@ dsci-310-group-15/
 |-- LICENSE.md
 |-- Makefile
 |-- README.md
+|-- dsci-310-group-15.Rproj
 `-- renv.lock
 ```
 
