@@ -24,3 +24,7 @@ node_modules
 
 # Large build artifacts
 *.deb
+
+# Logs
+package-lock.json
+package.json
