@@ -4196,10 +4196,15 @@
       "Version": "0.0.0.9000",
       "Source": "GitHub",
       "Title": "Process and Plot Steam Games Data",
-      "Authors@R": "person(\"Buyang\", \"Daffa\", , \"first.last@example.com\", role = c(\"aut\", \"cre\")) person(\"The\", \"Quach\", , \"first.last@example.com\", role = c(\"aut\", \"cre\")) person(\"Elaine\", \"Tao\", , \"elaine.tao0711@gmail.com\", role = c(\"aut\", \"cre\")) person(\"Cathy\", \"Zhang\", , \"first.last@example.com\", role = c(\"aut\", \"cre\"))",
+      "Authors@R": "c( person(\"Buyang\", \"Daffa\", email = \"mbuyangd@student.ubc.ca\", role = \"aut\"), person(\"The\", \"Quach\", email = \"ateqquach1@gmail.com\", role = \"aut\"), person(\"Elaine\", \"Tao\", email = \"elaine.tao0711@gmail.com\", role = c(\"aut\", \"cre\")), person(\"Jinghan\", \"Zhang\", email = \"cjhzhang@student.ubc.ca\", role = \"aut\"))",
+      "Author": "Buyang Daffa, The Quach, Elaine Tao, Jinghan Zhang",
+      "Maintainer": "Elaine Tao <elaine.tao0711@gmail.com>",
       "Description": "This is a tailor-made package for a Steam games dataset that processes data (extract values and train/test splits), and provides multiple plotting functions.",
       "License": "MIT + file LICENSE",
       "Encoding": "UTF-8",
+      "Depends": [
+        "R (>= 4.1.0)"
+      ],
       "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.3",
       "URL": "https://github.com/elaine-tao/processandplot",
@@ -4214,20 +4219,17 @@
         "caret",
         "dplyr",
         "ggplot2",
-        "patchwork",
         "rlang",
         "scales",
         "tidyr"
       ],
       "VignetteBuilder": "knitr",
-      "Author": "Cathy Zhang [aut, cre]",
-      "Maintainer": "Cathy Zhang <first.last@example.com>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteUsername": "elaine-tao",
+      "RemoteUsername": "UBC-DSCI-310-2025W2",
       "RemoteRepo": "processandplot",
       "RemoteRef": "master",
-      "RemoteSha": "38dda7f46ab084c6d0b99e7141d38e95180d909e"
+      "RemoteSha": "489b6b40837a69744e7a2b56ad9400bd58c7f96d"
     },
     "processx": {
       "Package": "processx",
