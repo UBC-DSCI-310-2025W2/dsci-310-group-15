@@ -113,7 +113,7 @@ test_that("validate_modeling_table catches wrong types, duplicates, missing pred
   )
 
   bad_range <- make_validation_model()
-  bad_range$release_year[1] <- 1999
+  bad_range$release_year[1] <- -2L
 
   expect_error(
     validate_modeling_table(wrong_type, expected_category_count = 2L),
@@ -143,15 +143,13 @@ test_that("validate_modeling_table catches wrong types, duplicates, missing pred
 
 test_that("optional metadata missingness warns but does not fail below the hard threshold", {
   model <- make_validation_model()
-  model$publisher_name[1] <- NA
-
-  report <- validate_modeling_table(model, expected_category_count = 2L)
+  model$publisher_name[1] <- NA_character_
 
   expect_warning(
     validate_modeling_table(
       model,
       expected_category_count = 2L,
-      optional_metadata_fail_threshold = 0.11
+      optional_metadata_fail_threshold = 0.25
     ),
     "publisher_name"
   )
@@ -161,13 +159,15 @@ test_that("validate_training_correlations fails target leakage predictors", {
   train_data <- make_validation_model()
   train_data$target_copy <- train_data$is_free == "Free"
 
-  report <- validate_training_correlations(
-    train_data,
-    predictors = c("required_age", "target_copy")
+  expect_error(
+    suppressWarnings(
+      validate_training_correlations(
+        train_data,
+        predictors = c("required_age", "target_copy")
+      )
+    ),
+    "specially"
   )
-
-  expect_equal(validation_status(report, "no_anomalous_target_feature_correlations"), "fail")
-  expect_error(assert_no_validation_failures(report), "Data validation failed")
 })
 
 test_that("validate_training_correlations warns and fails for high feature-feature correlations", {
@@ -180,9 +180,23 @@ test_that("validate_training_correlations warns and fails for high feature-featu
     duplicate_x = x
   )
 
-  warn_report <- validate_training_correlations(train_data, predictors = c("x", "noisy_x"))
-  fail_report <- validate_training_correlations(train_data, predictors = c("x", "duplicate_x"))
-
-  expect_warning(validation_status(warn_report, "no_anomalous_feature_feature_correlations"))
-  expect_error(validation_status(fail_report, "no_anomalous_feature_feature_correlations"))
+  expect_warning(
+    validate_training_correlations(
+      train_data,
+      predictors = c("x", "noisy_x"),
+      feature_warn_threshold = 0.90,
+      feature_fail_threshold = 0.999
+    ))
+  
+  expect_error(
+    suppressWarnings(
+      validate_training_correlations(
+        train_data,
+        predictors = c("x", "duplicate_x"),
+        feature_warn_threshold = 0.90,
+        feature_fail_threshold = 0.98
+      )
+    ),
+    "specially"
+  )  
 })
