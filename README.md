@@ -19,11 +19,17 @@ dsci-310-group-15/
 |   `-- workflows/
 |       `-- publish_docker_image.yml
 |-- R/
+|   |-- download_data.R
 |   |-- extract_values.R
 |   |-- io_validation_utils.R
+|   |-- model_training.R
+|   |-- plot_categorical_features.R
 |   |-- plot_class_imbalance.R
 |   |-- plot_functions.R
 |   |-- plot_numeric_distributions.R
+|   |-- plot_target_summary.R
+|   |-- preprocess_data.R
+|   |-- script_utils.R
 |   `-- train_test_split_data.R
 |-- data/
 |   |-- raw/
@@ -32,7 +38,6 @@ dsci-310-group-15/
 |-- reports/
 |   |-- references.bib
 |   `-- steam_full_analysis.qmd
-|-- results/
 |-- scripts/
 |   |-- 01_download-data.R
 |   |-- 02_data-preprocessing.R
@@ -52,14 +57,17 @@ dsci-310-group-15/
 |       |-- helper-train_test_data.R
 |       |-- test-03-class-imbalance.R
 |       |-- test-04-numeric-features.R
+|       |-- test-05-target-summary.R
+|       |-- test-06-categorical-features.R
 |       |-- test-extract_values.R
-|       |-- test-plot_values.R
+|       |-- test-model-split.R
+|       |-- test-plot_functions.R
 |       |-- test-test_data.R
 |       `-- test-train_data.R
 |-- CODE_OF_CONDUCT.md
 |-- CONTRIBUTING.md
 |-- Dockerfile
-|-- LICENSE
+|-- LICENSE.md
 |-- Makefile
 |-- README.md
 `-- renv.lock
@@ -159,7 +167,9 @@ Rscript scripts/07_train-test-model.R <input_data_dir> <results_dir>
 To clear all the outputs (figures; html and pdf reports), run:
 ```bash
 make clean
-Required R packages (exact versions):
+```
+
+### Required R packages (exact versions):
 
 | Package | Version |
 |---|---|
@@ -178,6 +188,7 @@ Required R packages (exact versions):
 | knitr | 1.50 |
 | here | 1.0.1 |
 | testthat | 3.3.2 |
+| pointblank | 0.12.3 |
 
 The fastest way to install all packages at the correct versions is to restore the project's `renv` lockfile:
 

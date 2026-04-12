@@ -1,4 +1,4 @@
-Material in this project is under the [Creative Commons 4.0](https://creativecommons.org/licenses/by/4.0/) license.
+Material in this project is under the **[Creative Commons 4.0](https://creativecommons.org/licenses/by/4.0/) license.**
 A short summary of this (NOT A REPLACEMENT FOR THE FULL TERMS) is:
 
 **You are free to:**
