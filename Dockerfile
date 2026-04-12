@@ -50,7 +50,7 @@ RUN R -q -e "remotes::install_version('tidyverse',  version = '2.0.0',    repos 
     R -q -e "remotes::install_version('tinytex',    version = '0.59',     repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('testthat',   version = '3.3.2',    repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('pointblank', version = '0.12.3',   repos = 'https://cloud.r-project.org')" && \
-    R -q -e "remotes::install_github('https://github.com/cjhzhang/processandplotr')"
+    R -q -e "remotes::install_github('https://github.com/elaine-tao/processandplot')"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-xetex \

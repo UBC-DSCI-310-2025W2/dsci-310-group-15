@@ -189,6 +189,7 @@ make clean
 | here | 1.0.1 |
 | testthat | 3.3.2 |
 | pointblank | 0.12.3 |
+| processandplot | 0.0.0.9000 |
 
 The fastest way to install all packages at the correct versions is to restore the project's `renv` lockfile:
 
