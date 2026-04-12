@@ -67,7 +67,7 @@ dsci-310-group-15/
 |-- CODE_OF_CONDUCT.md
 |-- CONTRIBUTING.md
 |-- Dockerfile
-|-- LICENSE
+|-- LICENSE.md
 |-- Makefile
 |-- README.md
 `-- renv.lock
