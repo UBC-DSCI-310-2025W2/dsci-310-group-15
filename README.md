@@ -167,7 +167,9 @@ Rscript scripts/07_train-test-model.R <input_data_dir> <results_dir>
 To clear all the outputs (figures; html and pdf reports), run:
 ```bash
 make clean
-Required R packages (exact versions):
+```
+
+### Required R packages (exact versions):
 
 | Package | Version |
 |---|---|
@@ -186,6 +188,7 @@ Required R packages (exact versions):
 | knitr | 1.50 |
 | here | 1.0.1 |
 | testthat | 3.3.2 |
+| pointblank | 0.12.3 |
 
 The fastest way to install all packages at the correct versions is to restore the project's `renv` lockfile:
 
