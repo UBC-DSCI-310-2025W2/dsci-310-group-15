@@ -155,7 +155,7 @@ Download from: <https://cran.r-project.org/>
 Each pipeline step can also be run directly from the project root:
 
 ```bash
-Rscript scripts/01_download-data.R <input_url> <output_data_dir>
+Rscript scripts/01_download-data.R <output_data_dir>
 Rscript scripts/02_data-preprocessing.R <input_data_dir> <output_data_dir> <table_output_dir>
 Rscript scripts/03_class-imbalance-check.R <input_data_dir> <plot_object_dir> <figure_dir>
 Rscript scripts/04_numeric-features-distributions.R <input_data_dir> <plot_object_dir> <figure_dir>
