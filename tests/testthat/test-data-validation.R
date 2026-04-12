@@ -115,6 +115,9 @@ test_that("validate_modeling_table catches wrong types, duplicates, missing pred
   bad_range <- make_validation_model()
   bad_range$release_year[1] <- -2L
 
+  bad_legacy_year <- make_validation_model()
+  bad_legacy_year$release_year[1] <- 1999L
+
   expect_error(
     validate_modeling_table(wrong_type, expected_category_count = 2L),
     "required_age"
@@ -138,6 +141,10 @@ test_that("validate_modeling_table catches wrong types, duplicates, missing pred
 
   expect_error(
     validate_modeling_table(bad_range, expected_category_count = 2L),
+  )
+
+  expect_error(
+    validate_modeling_table(bad_legacy_year, expected_category_count = 2L),
   )
 })
 

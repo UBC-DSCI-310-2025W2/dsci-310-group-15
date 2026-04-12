@@ -65,7 +65,7 @@ with sensible defaults, keeping data loss below 10%.
 
 ## Data Validation
 
-<!-- The pipeline runs data validation before the wrangled table is used for plots or
+The pipeline runs data validation before the wrangled table is used for plots or
 modeling. Structural checks fail the pipeline when the source file format, required
 columns, empty observations, required missingness, data types, duplicates, value
 ranges, category levels, or target distribution do not match expectations. Optional
@@ -73,23 +73,32 @@ developer/publisher metadata missingness is recorded as a warning because those 
 are not model predictors.
 
 Correlation diagnostics are run only on the training split after stratified sampling.
-This avoids using held-out test-set relationships to guide modeling decisions. 
+This avoids using held-out test-set relationships to guide modeling decisions.
+The near-leakage category predictors `cat_game_demo` and
+`cat_downloadable_content` are excluded from model predictors before the
+correlation diagnostics are calculated.
 
-TODO 
-note that we removed perfectly (or almost perfectly, like 99.95% collinear predictors, cat_game_demo and cat_downloadable_content) -->
-
-<!-- ```{r}
+```{r}
 #| label: tbl-validation-summary
 #| tbl-cap: "Data validation check summary by pipeline stage."
-validation_summary <- bind_rows(
-  read_csv("../data/data_validation_report.csv", show_col_types = FALSE),
-  read_csv("../results/train_validation_report.csv", show_col_types = FALSE)
-) |>
-  count(stage, status, name = "n_checks") |>
-  arrange(stage, status)
+validation_report_paths <- c(
+  "../data/data_validation_report.csv",
+  "../results/train_validation_report.csv"
+)
+
+existing_validation_reports <- validation_report_paths[file.exists(validation_report_paths)]
+
+validation_summary <- if (length(existing_validation_reports) > 0) {
+  existing_validation_reports |>
+    purrr::map_dfr(read_csv, show_col_types = FALSE) |>
+    count(stage, status, name = "n_checks") |>
+    arrange(stage, status)
+} else {
+  tibble(stage = "validation_reports", status = "missing", n_checks = 0L)
+}
 
 kable(validation_summary)
-``` -->
+```
 
 ## Exploratory Data Analysis
 
