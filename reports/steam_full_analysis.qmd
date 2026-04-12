@@ -1,6 +1,6 @@
 ---
 title: "Predicting Free vs Paid Games on Steam"
-author: "Group 15: Buyang Daffa, Cathy Zhang, Elaine Tao, Thê Quach"
+authors: "Group 15: Buyang Daffa, Jinghan Zhang, Elaine Tao, Thê Quach"
 format:
   html:
     toc: true
@@ -50,18 +50,47 @@ Specifically, we ask:
    only pre-launch observable features?
 3. Which features contribute most to that classification?
 
-# Methods & Results
+# Methods 
 
 The R programming language (@R) and the following R packages were used to perform
 the analysis: tidyverse (@tidyverse), caret (@caret), pROC (@pROC), janitor (@janitor),
 lubridate (@lubridate), scales (@scales), patchwork (@patchwork), jsonlite (@jsonlite),
 and Quarto (@Allaire_Quarto_2022).
 
-Data were loaded, cleaned, and feature-engineered using `scripts/02_data-preprocessing.R`.
+### Overview of Methodology
+
+Our questions about the differences between free and paid games indicate that this is a **classification** problem. Thus, **logistic regression** will be our model of choice.
+
+First, data was cleaned to simplify column names, recode variables to the appropriate type, and some exploratory data analysis was performed, leading to the discovery that the dataset was imbalanced. The imbalance is not too severe, but we must be aware of it when splitting our data and interpreting our results. With that in mind, we split the data into stratified train and test sets. 
+
+The logistic regression model was trained with 5-fold CV to optimise ROC AUC.
+
+## Data Wrangling & Cleaning
+Data was loaded, cleaned, and feature-engineered using `scripts/02_data-preprocessing.R`.
 Column names were simplified, `is_free` was recoded as a two-level factor, platform
 flags were cast to logical and summed into `platform_count`, and the top 15 most-frequent
 game categories were one-hot encoded as indicator columns. Missing values were imputed
 with sensible defaults, keeping data loss below 10%.
+
+## Data Validation
+Data validation was carried out by a pointblank pipeline. The pipeline checks that the following are as expected: 
+- source file format
+- required columns 
+- empty observations
+- missingness
+- data types
+- duplicates 
+- value ranges 
+- category levels 
+- target distributions
+
+Optional developer/publisher metadata missingness is recorded as a warning because those fields
+are not model predictors.
+
+Correlation diagnostics are run only on the training split after stratified sampling.
+This avoids using held-out test-set relationships to guide modelling decisions. After running correlation diagnostics, we decided to remove two engineered predictors (cat_game_demo and cat_downloadable_content )that were perfectly or almost perfectly(99.95%) collinear. 
+
+
 
 ## Exploratory Data Analysis
 
@@ -94,13 +123,20 @@ player pools for engagement.
 
 ![Difference in category prevalence between free and paid games.](../results/categorical_feat_gap.png){#fig-cat-analysis}
 
-## Modeling and Evaluation
+
+## Modelling
 
 The dataset was split 80/20 into training and test sets using stratified sampling to
 preserve the class ratio. A majority-class baseline — predicting "Paid" for every
-observation — yields 79.4% accuracy. Logistic regression was trained using `caret`
-(@caret) with 5-fold cross-validation optimising for ROC AUC. Only pre-launch observable
-features were included as predictors.
+observation — yields 79.4% accuracy. 
+
+Logistic regression was trained using `caret`
+(@caret) with 5-fold cross-validation optimising for ROC AUC. Given the imbalanced nature of the data, we chose ROC AUC as our evaluation metric, because it's suitable for evaluating model performance across all thresholds, and is less sensitive to class imbalance. 
+
+Only pre-launch observable
+features were included as predictors. We made this choice for two reasons. For one, the decision as to whether a game will be free or paid is generally made before launch; using only pre-launch features better reflects the reality that we are trying to model, and is more useful for making predictions before or during launch. For another, knowing that post-launch features have a chance of being correlated with cost (e.g. reviews may be more positive for free games; playtime may be higher for paid games), we wanted to avoid this "leakage".
+
+# Evaluation and Results
 
 Classification metrics for the model on the held-out test set are shown in @tbl-metrics.
 
