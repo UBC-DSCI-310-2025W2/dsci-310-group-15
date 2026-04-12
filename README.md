@@ -20,17 +20,12 @@ dsci-310-group-15/
 |       `-- publish_docker_image.yml
 |-- R/
 |   |-- download_data.R
-|   |-- extract_values.R
-|   |-- io_validation_utils.R
+|   |-- data_validation.R
 |   |-- model_training.R
 |   |-- plot_categorical_features.R
-|   |-- plot_class_imbalance.R
-|   |-- plot_functions.R
-|   |-- plot_numeric_distributions.R
 |   |-- plot_target_summary.R
 |   |-- preprocess_data.R
-|   |-- script_utils.R
-|   `-- train_test_split_data.R
+|   `-- script_utils.R
 |-- data/
 |   |-- raw/
 |   `-- games_sample.json
@@ -54,14 +49,9 @@ dsci-310-group-15/
 |   `-- testthat/
 |       |-- helper-source-r.R
 |       |-- helper-toy-data.R
-|       |-- helper-train_test_data.R
-|       |-- test-03-class-imbalance.R
-|       |-- test-04-numeric-features.R
 |       |-- test-05-target-summary.R
 |       |-- test-06-categorical-features.R
-|       |-- test-extract_values.R
 |       |-- test-model-split.R
-|       |-- test-plot_functions.R
 |       |-- test-test_data.R
 |       `-- test-train_data.R
 |-- CODE_OF_CONDUCT.md
@@ -70,9 +60,11 @@ dsci-310-group-15/
 |-- LICENSE.md
 |-- Makefile
 |-- README.md
+|-- dsci-310-group-15.Rproj
 `-- renv.lock
 ```
 
+Note on Repository Organization: Some of our own functions used in our analysis pipeline can be found in the [processandplot](https://github.com/UBC-DSCI-310-2025W2/processandplot) package. The remaining functions and the data validation are in this repository, under `R/`. Similarly, the tests associated with the abstracted functions can be found in our other repository, while the tests associated with this repository's functions and scripts can be found in `tests/testthat`.
 ---
 
 ## Running the Analysis
@@ -189,6 +181,7 @@ make clean
 | here | 1.0.1 |
 | testthat | 3.3.2 |
 | pointblank | 0.12.3 |
+| processandplot | 0.0.0.9000 |
 
 The fastest way to install all packages at the correct versions is to restore the project's `renv` lockfile:
 

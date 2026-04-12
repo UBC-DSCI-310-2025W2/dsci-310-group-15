@@ -9,7 +9,7 @@ summarize_release_counts_by_class <- function(
     data,
     target_col = "is_free",
     release_year_col = "release_year") {
-  validate_required_columns(data, c(target_col, release_year_col), "data")
+  processandplot::validate_required_columns(data, c(target_col, release_year_col), "data")
 
   data |>
     dplyr::filter(.data[[release_year_col]] > 0) |>
@@ -30,7 +30,7 @@ summarize_binary_feature_rates <- function(
     target_col = "is_free",
     binary_cols = c("has_dlc", "has_demo"),
     feature_labels = c(has_dlc = "Has DLC", has_demo = "Has Demo")) {
-  validate_required_columns(data, c(target_col, binary_cols), "data")
+  processandplot::validate_required_columns(data, c(target_col, binary_cols), "data")
 
   rates <- data |>
     dplyr::group_by(.data[[target_col]]) |>
@@ -55,7 +55,7 @@ summarize_binary_feature_rates <- function(
 #'
 #' @return A ggplot object.
 build_release_counts_plot <- function(release_counts, target_col = "is_free") {
-  validate_required_columns(release_counts, c("release_year", target_col, "n"), "release_counts")
+  processandplot::validate_required_columns(release_counts, c("release_year", target_col, "n"), "release_counts")
 
   ggplot2::ggplot(
     release_counts,
@@ -82,7 +82,7 @@ build_release_counts_plot <- function(release_counts, target_col = "is_free") {
 #'
 #' @return A ggplot object.
 build_binary_feature_rates_plot <- function(binary_rates, target_col = "is_free") {
-  validate_required_columns(binary_rates, c(target_col, "feature", "rate"), "binary_rates")
+  processandplot::validate_required_columns(binary_rates, c(target_col, "feature", "rate"), "binary_rates")
 
   ggplot2::ggplot(
     binary_rates,
@@ -135,11 +135,11 @@ save_target_summary_outputs <- function(
     output_figure_dir,
     object_filename = "target_by_release_binary.RDS",
     figure_filename = "target_by_release_binary.png") {
-  ensure_directory_exists(output_object_dir, "output_object_dir")
-  ensure_directory_exists(output_figure_dir, "output_figure_dir")
+  processandplot::ensure_directory_exists(output_object_dir, "output_object_dir")
+  processandplot::ensure_directory_exists(output_figure_dir, "output_figure_dir")
 
-  rds_path <- build_file_path(output_object_dir, object_filename)
-  png_path <- build_file_path(output_figure_dir, figure_filename)
+  rds_path <- processandplot::build_file_path(output_object_dir, object_filename)
+  png_path <- processandplot::build_file_path(output_figure_dir, figure_filename)
 
   saveRDS(target_summary_plot, rds_path)
   ggplot2::ggsave(plot = target_summary_plot, filename = png_path, width = 10, height = 5.5)
@@ -160,7 +160,7 @@ run_target_summary_plots <- function(
     output_object_dir,
     output_figure_dir,
     input_filename = "wrangled_table.RDS") {
-  modeling_data <- load_wrangled_table(input_data_dir, input_filename)
+  modeling_data <- processandplot::load_wrangled_table(input_data_dir, input_filename)
   target_summary_plot <- build_target_summary_plot(modeling_data)
   saved_paths <- save_target_summary_outputs(
     target_summary_plot,

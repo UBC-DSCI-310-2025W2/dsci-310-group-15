@@ -30,7 +30,7 @@ RUN ARCH=$(dpkg --print-architecture) && \
     gdebi --non-interactive "quarto-1.6.40-linux-${ARCH}.deb" && \
     rm "quarto-1.6.40-linux-${ARCH}.deb"
 
-RUN install2.r --error --skipinstalled --ncpus -1 remotes
+RUN install2.r --error --skipinstalled --ncpus -1 remotes 
 
 RUN R -q -e "remotes::install_version('tidyverse',  version = '2.0.0',    repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('jsonlite',   version = '2.0.0',    repos = 'https://cloud.r-project.org')" && \
@@ -48,8 +48,9 @@ RUN R -q -e "remotes::install_version('tidyverse',  version = '2.0.0',    repos 
     R -q -e "remotes::install_version('knitr',      version = '1.50',     repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('here',       version = '1.0.1',    repos = 'https://cloud.r-project.org')" && \
     R -q -e "remotes::install_version('tinytex',    version = '0.59',     repos = 'https://cloud.r-project.org')" && \
-    R -q -e "remotes::install_version('testthat',   version = '3.3.2',    repos = 'https://cloud.r-project.org')" $$ \
-    R -q -e "remotes::install_version('pointblank',   version = '0.12.3',    repos = 'https://cloud.r-project.org')"
+    R -q -e "remotes::install_version('testthat',   version = '3.3.2',    repos = 'https://cloud.r-project.org')" && \
+    R -q -e "remotes::install_version('pointblank', version = '0.12.3',   repos = 'https://cloud.r-project.org')" && \
+    R -q -e "remotes::install_github('https://github.com/UBC-DSCI-310-2025W2/processandplot')"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-xetex \

@@ -23,10 +23,9 @@ if (!file.exists(script_utils_path)) {
 source(script_utils_path)
 
 project_root <- find_project_root(script_dir)
-load_required_packages(c("docopt", "dplyr", "tidyr", "ggplot2", "scales", "stringr"))
+load_required_packages(c("docopt", "dplyr", "tidyr", "ggplot2", "scales", "stringr", "processandplot"))
 opt <- docopt::docopt(usage_doc)
 
-source_project_file(project_root, "R", "io_validation_utils.R")
 source_project_file(project_root, "R", "plot_categorical_features.R")
 
 invisible(run_categorical_features_plot(

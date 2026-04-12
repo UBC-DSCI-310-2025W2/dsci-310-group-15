@@ -16,7 +16,6 @@ results:
 data/games_sample.RDS: \
 	scripts/01_download-data.R \
 	R/script_utils.R \
-	R/io_validation_utils.R \
 	R/download_data.R | data
 	Rscript scripts/01_download-data.R data/
 
@@ -24,9 +23,7 @@ data/games_sample.RDS: \
 data/wrangled_table.RDS data/wrangled_table.csv: \
 	scripts/02_data-preprocessing.R \
 	R/script_utils.R \
-	R/io_validation_utils.R \
 	R/data_validation.R \
-	R/extract_values.R \
 	R/preprocess_data.R \
 	data/games_sample.RDS | data
 	Rscript scripts/02_data-preprocessing.R data/ data/ data/
@@ -37,23 +34,18 @@ data/wrangled_table.RDS data/wrangled_table.csv: \
 results/class_distribution_plot.png: \
 	scripts/03_class-imbalance-check.R \
 	R/script_utils.R \
-	R/io_validation_utils.R \
-	R/plot_class_imbalance.R \
 	data/wrangled_table.RDS | results
 	Rscript scripts/03_class-imbalance-check.R data/ results/ results/
 
 results/numeric_feature_distributions.png: \
 	scripts/04_numeric-features-distributions.R \
 	R/script_utils.R \
-	R/io_validation_utils.R \
-	R/plot_numeric_distributions.R \
 	data/wrangled_table.RDS | results
 	Rscript scripts/04_numeric-features-distributions.R data/ results/ results/
 
 results/target_by_release_binary.png: \
 	scripts/05_additional-target-summary-plots.R \
 	R/script_utils.R \
-	R/io_validation_utils.R \
 	R/plot_target_summary.R \
 	data/wrangled_table.RDS | results
 	Rscript scripts/05_additional-target-summary-plots.R data/ results/ results/
@@ -61,7 +53,6 @@ results/target_by_release_binary.png: \
 results/categorical_feat_gap.png: \
 	scripts/06_categorical-features-plots.R \
 	R/script_utils.R \
-	R/io_validation_utils.R \
 	R/plot_categorical_features.R \
 	data/wrangled_table.RDS | results
 	Rscript scripts/06_categorical-features-plots.R data/ results/ results/
@@ -70,7 +61,6 @@ results/roc_curve.png results/confusion_matrix.png \
 results/evaluation_metrics_table.csv results/feature_importances_table.csv: \
 	scripts/07_train-test-model.R \
 	R/script_utils.R \
-	R/io_validation_utils.R \
 	R/data_validation.R \
 	R/model_training.R \
 	data/wrangled_table.RDS | results
