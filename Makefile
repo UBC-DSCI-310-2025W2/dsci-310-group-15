@@ -13,7 +13,11 @@ results:
 
 #data
 
-data/games_sample.RDS: scripts/01_download-data.R | data
+data/games_sample.RDS: \
+	scripts/01_download-data.R \
+	R/script_utils.R \
+	R/io_validation_utils.R \
+	R/download_data.R | data
 	Rscript scripts/01_download-data.R data/
 
 
@@ -47,11 +51,17 @@ results/numeric_feature_distributions.png: \
 
 results/target_by_release_binary.png: \
 	scripts/05_additional-target-summary-plots.R \
+	R/script_utils.R \
+	R/io_validation_utils.R \
+	R/plot_target_summary.R \
 	data/wrangled_table.RDS | results
 	Rscript scripts/05_additional-target-summary-plots.R data/ results/ results/
 
 results/categorical_feat_gap.png: \
 	scripts/06_categorical-features-plots.R \
+	R/script_utils.R \
+	R/io_validation_utils.R \
+	R/plot_categorical_features.R \
 	data/wrangled_table.RDS | results
 	Rscript scripts/06_categorical-features-plots.R data/ results/ results/
 
