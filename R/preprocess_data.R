@@ -34,7 +34,7 @@ build_modeling_table <- function(games_data, top_n_categories = 15L) {
     "app_details.data.developers",
     "app_details.data.publishers"
   )
-  processandplotr::validate_required_columns(games_data, required_columns, "games_data")
+  processandplot::validate_required_columns(games_data, required_columns, "games_data")
 
   flat_data <- games_data |>
     dplyr::rename(
@@ -67,7 +67,7 @@ build_modeling_table <- function(games_data, top_n_categories = 15L) {
         as.integer(tidyr::replace_na(linux_support, FALSE)),
       has_dlc = purrr::map_lgl(dlc, ~ length(.x) > 0L),
       has_demo = purrr::map_lgl(demos, ~ length(.x) > 0L),
-      category_list = purrr::map(categories, processandplotr::extract_values, field_name = "description"),
+      category_list = purrr::map(categories, processandplot::extract_values, field_name = "description"),
       n_categories = purrr::map_int(category_list, length),
       developer_name = purrr::map_chr(
         developers,
@@ -140,21 +140,21 @@ run_data_preprocessing <- function(
     input_filename = "games_sample.RDS",
     top_n_categories = 15L,
     force = TRUE) {
-  processandplotr::assert_single_string(input_data_dir, "input_data_dir")
-  processandplotr::assert_single_string(output_data_dir, "output_data_dir")
-  processandplotr::assert_single_string(table_output_dir, "table_output_dir")
-  processandplotr::assert_single_string(input_filename, "input_filename")
+  processandplot::assert_single_string(input_data_dir, "input_data_dir")
+  processandplot::assert_single_string(output_data_dir, "output_data_dir")
+  processandplot::assert_single_string(table_output_dir, "table_output_dir")
+  processandplot::assert_single_string(input_filename, "input_filename")
 
-  processandplotr::ensure_directory_exists(output_data_dir, "output_data_dir")
-  processandplotr::ensure_directory_exists(table_output_dir, "table_output_dir")
+  processandplot::ensure_directory_exists(output_data_dir, "output_data_dir")
+  processandplot::ensure_directory_exists(table_output_dir, "table_output_dir")
 
-  input_path <- processandplotr::build_file_path(input_data_dir, input_filename)
+  input_path <- processandplot::build_file_path(input_data_dir, input_filename)
   if (!file.exists(input_path)) {
     stop(sprintf("Input file not found: %s", input_path), call. = FALSE)
   }
 
-  rds_path <- processandplotr::build_file_path(output_data_dir, "wrangled_table.RDS")
-  csv_path <- processandplotr::build_file_path(table_output_dir, "wrangled_table.csv")
+  rds_path <- processandplot::build_file_path(output_data_dir, "wrangled_table.RDS")
+  csv_path <- processandplot::build_file_path(table_output_dir, "wrangled_table.csv")
   games_data <- load_validated_rds_data_frame(
     input_path,
     data_name = "games_sample"
