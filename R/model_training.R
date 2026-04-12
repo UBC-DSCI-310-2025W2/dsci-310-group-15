@@ -22,6 +22,7 @@ select_model_predictors <- function(data, category_pattern = "^cat_") {
     "n_categories"
   )
   category_predictors <- grep(category_pattern, names(data), value = TRUE)
+  category_predictors <- setdiff(category_predictors, c("cat_game_demo", "cat_downloadable_content"))
   predictors <- c(base_predictors, category_predictors)
 
   validate_required_columns(data, predictors, "data")
@@ -239,6 +240,26 @@ run_train_test_model <- function(
     train_prop = train_prop,
     seed = seed
   )
+  
+  validate_modeling_table(
+    modeling_data,
+    stage = "model_input"
+  )
+
+  validate_training_correlations(
+    split$train_data,
+    predictors = predictors,
+    target_col = "is_free",
+    stage = "training_split"
+  )
+
+  training_validation_report <- build_training_validation_report(
+    modeling_data,
+    train_data = split$train_data,
+    predictors = predictors,
+    stage = "model_input",
+    training_stage = "training_split"
+  )
 
   train_model <- split$train_data |>
     dplyr::select(is_free, dplyr::all_of(predictors))
@@ -291,10 +312,12 @@ run_train_test_model <- function(
   output_paths <- list(
     feature_importances = build_file_path(results_dir, "feature_importances_table.csv"),
     evaluation_metrics = build_file_path(results_dir, "evaluation_metrics_table.csv"),
+    training_validation = build_file_path(results_dir, "train_validation_report.csv"),
     roc_curve = build_file_path(results_dir, "roc_curve.png"),
     confusion_matrix = build_file_path(results_dir, "confusion_matrix.png")
   )
 
+  utils::write.csv(training_validation_report, output_paths$training_validation, row.names = FALSE)
   utils::write.csv(feature_importances, output_paths$feature_importances, row.names = FALSE)
   utils::write.csv(evaluation_metrics_table, output_paths$evaluation_metrics, row.names = FALSE)
   ggplot2::ggsave(plot = roc_curve_plot, filename = output_paths$roc_curve, width = 7, height = 6)
@@ -305,6 +328,7 @@ run_train_test_model <- function(
     split = split,
     evaluation = evaluation,
     evaluation_metrics_table = evaluation_metrics_table,
+    training_validation_report = training_validation_report,
     feature_importances = feature_importances,
     confusion_matrix_plot = confusion_matrix_plot,
     roc_curve_plot = roc_curve_plot,

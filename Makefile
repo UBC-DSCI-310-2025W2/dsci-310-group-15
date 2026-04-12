@@ -25,6 +25,7 @@ data/wrangled_table.RDS data/wrangled_table.csv: \
 	scripts/02_data-preprocessing.R \
 	R/script_utils.R \
 	R/io_validation_utils.R \
+	R/data_validation.R \
 	R/extract_values.R \
 	R/preprocess_data.R \
 	data/games_sample.RDS | data
@@ -70,6 +71,7 @@ results/evaluation_metrics_table.csv results/feature_importances_table.csv: \
 	scripts/07_train-test-model.R \
 	R/script_utils.R \
 	R/io_validation_utils.R \
+	R/data_validation.R \
 	R/model_training.R \
 	data/wrangled_table.RDS | results
 	Rscript scripts/07_train-test-model.R data/ results/
@@ -87,7 +89,7 @@ reports/steam_full_analysis.html: \
 	results/roc_curve.png \
 	results/confusion_matrix.png \
 	results/evaluation_metrics_table.csv \
-	results/feature_importances_table.csv
+	results/feature_importances_table.csv 
 	quarto render reports/steam_full_analysis.qmd --to html
 	
 
@@ -100,7 +102,7 @@ reports/steam_full_analysis.pdf: \
 	results/roc_curve.png \
 	results/confusion_matrix.png \
 	results/evaluation_metrics_table.csv \
-	results/feature_importances_table.csv
+	results/feature_importances_table.csv 
 	quarto render reports/steam_full_analysis.qmd --to pdf
 
 # clean

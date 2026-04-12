@@ -155,6 +155,13 @@ run_data_preprocessing <- function(
 
   rds_path <- build_file_path(output_data_dir, "wrangled_table.RDS")
   csv_path <- build_file_path(table_output_dir, "wrangled_table.csv")
+  games_data <- load_validated_rds_data_frame(
+    input_path,
+    data_name = "games_sample"
+  )
+
+  validate_raw_games_data(games_data, stage = "raw_source")
+
   needs_refresh <- force ||
     !file.exists(rds_path) ||
     !file.exists(csv_path) ||
@@ -162,16 +169,26 @@ run_data_preprocessing <- function(
     file.info(input_path)$mtime > file.info(csv_path)$mtime
 
   if (needs_refresh) {
-    games_data <- readRDS(input_path)
     modeling_table <- build_modeling_table(games_data, top_n_categories = top_n_categories)
+  } else {
+    modeling_table <- load_validated_rds_data_frame(
+      rds_path,
+      data_name = "wrangled_table"
+    )
+  }
+  validate_modeling_table(
+    modeling_table,
+    stage = "modeling_table",
+    expected_category_count = top_n_categories
+  )
+
+  if (needs_refresh) {
     saveRDS(modeling_table, rds_path)
     utils::write.csv(modeling_table, csv_path, row.names = FALSE)
-  } else {
-    modeling_table <- readRDS(rds_path)
   }
 
   message("Modeling table: ", nrow(modeling_table), " rows x ", ncol(modeling_table), " columns")
-
+  
   list(
     modeling_table = modeling_table,
     rds_path = rds_path,

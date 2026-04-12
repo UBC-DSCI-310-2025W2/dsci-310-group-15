@@ -11,13 +11,20 @@ __pycache__/
 # Docker
 docker-compose.override.yml
 
-# Notebook checkpoints
+# Notebook checkpoints and results
 .ipynb_checkpoints/
 .DS_Store
 /data
+/results
+/reports/steam_full_analysis.pdf
+/reports/steam_full_analysis.html
 .Rproj.user
 
 node_modules
 
 # Large build artifacts
 *.deb
+
+# Logs
+package-lock.json
+package.json
